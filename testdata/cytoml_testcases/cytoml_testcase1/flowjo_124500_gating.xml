@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <gating:Gating-ML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:gating="http://www.isac-net.org/std/Gating-ML/v2.0/gating"  xmlns:transforms="http://www.isac-net.org/std/Gating-ML/v2.0/transformations"  xmlns:data-type="http://www.isac-net.org/std/Gating-ML/v2.0/datatypes"  xsi:schemaLocation="http://www.isac-net.org/std/Gating-ML/v2.0/gating http://www.isac-net.org/std/Gating-ML/v2.0/gating/Gating-ML.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/transformations http://www.isac-net.org/std/Gating-ML/v2.0/gating/Transformations.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/datatypes http://www.isac-net.org/std/Gating-ML/v2.0/gating/DataTypes.v2.0.xsd " >
+   <gating:RectangleGate eventsInside="1"  annoOffsetX="0"  annoOffsetY="0"  tint="#000000"  isTinted="0"  lineWeight="Normal"  userDefined="1"  percentX="0"  percentY="0"  gating:id="ID1304172220" >
+     <gating:dimension gating:min="41152.564577549005"  gating:max="94495.08347262339" >
+       <data-type:fcs-dimension data-type:name="FSC-H" />
+     </gating:dimension>
+     <gating:dimension gating:min="-21703.269789258426"  gating:max="210382.79786195877" >
+       <data-type:fcs-dimension data-type:name="FSC-W" />
+     </gating:dimension>
+   </gating:RectangleGate>
+   <gating:RectangleGate eventsInside="1"  annoOffsetX="0"  annoOffsetY="0"  tint="#000000"  isTinted="0"  lineWeight="Normal"  userDefined="1"  percentX="0"  percentY="0"  gating:id="ID1634020096"  gating:parent_id="ID1304172220" >
+     <gating:dimension gating:min="47248.85245127179"  gating:max="103639.51528320757" >
+       <data-type:fcs-dimension data-type:name="SSC-H" />
+     </gating:dimension>
+     <gating:dimension gating:min="-15024.534029511153"  gating:max="203704.06210221152" >
+       <data-type:fcs-dimension data-type:name="SSC-W" />
+     </gating:dimension>
+   </gating:RectangleGate>
+   <gating:PolygonGate eventsInside="1"  annoOffsetX="0"  annoOffsetY="0"  tint="#000000"  isTinted="0"  lineWeight="Normal"  userDefined="1"  quadId="-1"  gateResolution="256"  gating:id="ID2066677312"  gating:parent_id="ID1634020096" >
+     <gating:dimension>
+       <data-type:fcs-dimension data-type:name="FSC-A" />
+     </gating:dimension>
+     <gating:dimension>
+       <data-type:fcs-dimension data-type:name="Comp-APC-Cy7-A" />
+     </gating:dimension>
+     <gating:vertex>
+       <gating:coordinate data-type:value="150885.7463045592" />
+       <gating:coordinate data-type:value="31531.8603565218" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="74682.1478830243" />
+       <gating:coordinate data-type:value="746.1104647827" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="48772.9244197025" />
+       <gating:coordinate data-type:value="126.4073232664" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="56393.284261856" />
+       <gating:coordinate data-type:value="3.2115719162" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="67061.7880408708" />
+       <gating:coordinate data-type:value="-16.9422286173" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="222517.1288208019" />
+       <gating:coordinate data-type:value="-11.7581626072" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="240805.9924419703" />
+       <gating:coordinate data-type:value="13.2804258236" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="242330.064410401" />
+       <gating:coordinate data-type:value="1980.6949352941" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="239281.9204735396" />
+       <gating:coordinate data-type:value="17399.0778103244" />
+     </gating:vertex>
+   </gating:PolygonGate>
+   <gating:PolygonGate eventsInside="1"  annoOffsetX="0"  annoOffsetY="0"  tint="#000000"  isTinted="0"  lineWeight="Normal"  userDefined="1"  quadId="-1"  gateResolution="256"  gating:id="ID713496556"  gating:parent_id="ID2066677312" >
+     <gating:dimension>
+       <data-type:fcs-dimension data-type:name="Comp-Pacific Orange-A" />
+     </gating:dimension>
+     <gating:dimension>
+       <data-type:fcs-dimension data-type:name="Comp-Bd Horizon V450-A" />
+     </gating:dimension>
+     <gating:vertex>
+       <gating:coordinate data-type:value="7013.5244775843" />
+       <gating:coordinate data-type:value="50080.3427759393" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="57843.5470997477" />
+       <gating:coordinate data-type:value="50080.3427759393" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="105759.6355640972" />
+       <gating:coordinate data-type:value="795.9325038575" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="99566.1052274102" />
+       <gating:coordinate data-type:value="-14.3291337502" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="4888.9724773834" />
+       <gating:coordinate data-type:value="-14.3291337502" />
+     </gating:vertex>
+     <gating:vertex>
+       <gating:coordinate data-type:value="3211.2745169817" />
+       <gating:coordinate data-type:value="418.6490649001" />
+     </gating:vertex>
+   </gating:PolygonGate>
+   <gating:RectangleGate eventsInside="1"  annoOffsetX="0"  annoOffsetY="0"  tint="#000000"  isTinted="0"  lineWeight="Normal"  userDefined="1"  gating:id="ID989423374"  gating:parent_id="ID713496556" >
+     <gating:dimension gating:min="977.1624097634424"  gating:max="139549.59472042552"  yRatio="0.5" >
+       <data-type:fcs-dimension data-type:name="Comp-PE-A" />
+     </gating:dimension>
+   </gating:RectangleGate>
+ </gating:Gating-ML>
