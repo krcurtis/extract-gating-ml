@@ -1,8 +1,12 @@
 --------------------------------------------------------------------------------
 --- Parse FACSDiva xml gating file for conversion to Gating-ML 2.0
+        
+
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -Werror=missing-fields #-}
+
 
 module ParseDiva where
 
@@ -13,9 +17,9 @@ module ParseDiva where
 import Text.XML.Light
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Maybe (catMaybes)
-
-
+import Data.Maybe (catMaybes, fromJust, isJust)
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 
 {-
 
@@ -88,9 +92,27 @@ data DivaGate = DivaGate
             
 type DivaGateSet = [DivaGate]
 
+
+
+data DivaInfo = DivaInfo { di_specimens :: [String]  -- named specimens, there might be specimen sections without names, which are not included
+                         , di_specimen_tubes :: Map.Map String [DivaTube]
+                         -- what about tube name to DivaTube, this might make sense if tube names don't overlap ...
+                         , di_has_overlap :: Bool  -- some tube names overlap
+                         , di_overlapping_tube_names :: [String]  --list of tube names that occur in more than one specimen
+                         , di_tube_names :: [String] -- unique listing of the tube names
+                         }
+                deriving (Show)
+
+data DivaTube = DivaTube { dt_tube_name :: String
+                         , dt_gates :: [DivaGate]
+                         -- TODO compensation
+                         }
+                deriving (Show)
+
+
 --------------------------------------------------------------------------------
 
-diva_file = "/home/kcurtis/project-base/software/apps/extract-gating-ml/testdata/PE_2.xml"
+
 
 simple_name s = QName s Nothing Nothing
 
@@ -105,6 +127,18 @@ convert_to = read . strContent
 
 
 
+
+load_root_node :: String -> IO Element
+load_root_node filename = do
+    source <- T.readFile filename
+    let contents = parseXML source
+        entries   = concatMap (findElements $ simple_name "bdfacs") (onlyElems contents)
+        
+    if length entries == 1
+    then return $ entries !! 0
+    else error $ "ERROR could not load bdfacs root node from" <> filename
+
+{-
 gate_contents :: IO ()
 gate_contents = do
     source <- T.readFile diva_file
@@ -116,12 +150,38 @@ gate_contents = do
     if 1 == length entries
       then print . show $ (gates_in_specimens (entries !! 0)) !! 0
       else print "ERROR expecting bdfacs root xml node"
+-}
 
 
+specimen_nodes :: Element -> [Element]
+specimen_nodes root_node = findElements (simple_name "specimen")  root_node
+
+specimen_listing :: Element -> [String]
+specimen_listing root_node = catMaybes . map (findAttr (simple_name "name")) $ nodes
+  where
+    nodes = specimen_nodes root_node
+
+specimen_mapping :: Element -> Map.Map String Element
+specimen_mapping root_node = Map.fromList specimens'
+  where
+    specimens = [ (findAttr (simple_name "name") s, s) | s <- specimen_nodes root_node]
+    specimens' = [ (fromJust name, s) | (name, s) <- specimens, isJust name]
+
+
+
+{-
 gates_in_specimens :: Element -> [DivaGateSet]
 gates_in_specimens root_node = map collect_gate_set specimen_elements
   where
     specimen_elements = findElements (simple_name "specimen")  root_node
+-}
+
+gates_in_specimen :: Element -> String -> Maybe DivaGateSet
+gates_in_specimen root_node specimen_name = fmap collect_gate_set s
+  where
+    mapping = specimen_mapping root_node
+    s = Map.lookup specimen_name mapping
+    
 
 
 get_gates_element :: Element -> Element
@@ -190,3 +250,54 @@ parse_point p = do
   x <- fmap read $ findAttr (simple_name "x") p
   y <- fmap read $ findAttr (simple_name "y") p
   return (x,y)
+
+
+{- 
+compensation_in_specimen :: Element -> Maybe [ (String, [Double])]
+compensation_in_specimen node = do
+  instrument_settings <- findElement (simple_name "instrument_settings") node
+  parameter_nodes <- 
+
+
+instrument_settings_nodes :: Element -> [Element]
+instrument_settings_nodes node = findElements (simple_name "instrument_settings")  node
+
+
+tube_nodes :: Element -> [Element]
+tube_nodes node = findElements (simple_name "tube")  node
+
+
+-}
+
+parse_diva_tube :: Element -> DivaTube
+parse_diva_tube tube_node = DivaTube{..}
+  where
+    dt_tube_name = case (findAttr (simple_name "name") tube_node) of
+                     Nothing -> error "ERROR no tube name attribute in node"
+                     Just x -> x
+    dt_gates = collect_gate_set tube_node
+
+collect_tube_info :: Element -> [DivaTube]
+collect_tube_info node = map parse_diva_tube nodes
+  where
+    nodes = findElements (simple_name "tube")  node 
+
+
+find_duplicates :: (Ord a) => (Set.Set a) -> (Set.Set a) -> [a] -> Set.Set a
+find_duplicates so_far dups [] = dups
+find_duplicates so_far dups (x:xs) | Set.member x so_far = find_duplicates so_far (Set.insert x dups) xs
+find_duplicates so_far dups (x:xs) | otherwise = find_duplicates (Set.insert x so_far) dups xs
+
+    
+
+load_diva_info :: String -> IO DivaInfo
+load_diva_info filename = do
+    root <- load_root_node filename
+    let smap = specimen_mapping root
+        di_specimens = map fst $ Map.toList smap
+        di_specimen_tubes = Map.fromList [ (s, collect_tube_info e) | (s,e) <- Map.toList smap]
+        all_tubes = (map dt_tube_name . concat . map snd . Map.toList ) di_specimen_tubes
+        di_overlapping_tube_names = Set.toList $ find_duplicates Set.empty Set.empty all_tubes
+        di_has_overlap = length di_overlapping_tube_names > 0
+        di_tube_names = Set.toList . Set.fromList $ all_tubes
+    return DivaInfo {..}
