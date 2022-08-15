@@ -105,7 +105,8 @@ data DivaInfo = DivaInfo { di_specimens :: [String]  -- named specimens, there m
 
 data DivaTube = DivaTube { dt_tube_name :: String
                          , dt_gates :: [DivaGate]
-                         -- TODO compensation
+                         , dt_has_compensation :: Bool
+                         , dt_compensation_info :: [ (String, [Double])]
                          }
                 deriving (Show)
 
@@ -252,13 +253,27 @@ parse_point p = do
   return (x,y)
 
 
-{- 
-compensation_in_specimen :: Element -> Maybe [ (String, [Double])]
-compensation_in_specimen node = do
-  instrument_settings <- findElement (simple_name "instrument_settings") node
-  parameter_nodes <- 
 
 
+-- assumes given a parameter node
+single_parameter_compensation :: Element -> Maybe (String, [Double])
+single_parameter_compensation node = do
+  parameter_name <- findAttr (simple_name "name") node
+  compensation_node <- findElement (simple_name "compensation") node
+  
+  let coeff_nodes = findElements (simple_name "compensation_coefficient") compensation_node
+      coeffs = fmap convert_to coeff_nodes
+  return (parameter_name, coeffs)
+  
+
+-- assumes given a tube node
+compensation_info :: Element -> Maybe [ (String, [Double])]
+compensation_info node = do
+    instrument_settings <- findElement (simple_name "instrument_settings") node
+    let parameter_nodes = findElements (simple_name "parameter") node
+    return $ catMaybes $ map single_parameter_compensation parameter_nodes
+
+{-
 instrument_settings_nodes :: Element -> [Element]
 instrument_settings_nodes node = findElements (simple_name "instrument_settings")  node
 
@@ -276,6 +291,10 @@ parse_diva_tube tube_node = DivaTube{..}
                      Nothing -> error "ERROR no tube name attribute in node"
                      Just x -> x
     dt_gates = collect_gate_set tube_node
+    (dt_has_compensation, dt_compensation_info) = case (compensation_info tube_node) of
+                                                    Nothing -> (False, [])
+                                                    Just xs -> (True, xs)
+    
 
 collect_tube_info :: Element -> [DivaTube]
 collect_tube_info node = map parse_diva_tube nodes
@@ -300,4 +319,15 @@ load_diva_info filename = do
         di_overlapping_tube_names = Set.toList $ find_duplicates Set.empty Set.empty all_tubes
         di_has_overlap = length di_overlapping_tube_names > 0
         di_tube_names = Set.toList . Set.fromList $ all_tubes
-    return DivaInfo {..}
+    return DivaInfo{..}
+
+
+show_tube_gates :: DivaInfo -> IO ()
+show_tube_gates DivaInfo{..} = do
+  let records = [ (s, dt_tube_name t, length . dt_gates $ t ) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
+  mapM_ (\(s,t, g) -> putStrLn $ "Specimen: " <> s <> "  Tube:" <> t <> "  n_gates: " <> (show g)) records
+
+show_tube_compensation_summary :: DivaInfo -> IO ()
+show_tube_compensation_summary DivaInfo{..} = do
+  let records = [ (s, dt_tube_name t, length . dt_compensation_info $ t) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
+  mapM_ (\(s,t, c) -> putStrLn $ "Specimen: " <> s <> "  Tube:" <> t <> "  Number parameters with compensation: " <> (show c)) records

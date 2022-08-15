@@ -18,7 +18,7 @@ data Gate = RectangleGate
             }
             | PolygonGate
               { pg_id :: T.Text
-              , pg_parent_id :: T.Text              
+              , pg_parent_id :: Maybe T.Text              
               , pg_x_dim :: GatingDimension
               , pg_y_dim :: GatingDimension
               , pg_points :: [(Double, Double)]

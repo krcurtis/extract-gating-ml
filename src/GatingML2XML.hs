@@ -98,6 +98,25 @@ gating_dimension GatingDimension{..} = full_element
                            , elLine = Nothing
                            }
 
+gating_vertex :: (Double, Double) -> Element
+gating_vertex (x,y) = full_element
+  where
+    x_element = Element { elName = unqual "gating:coordinate"
+                        , elAttribs = [Attr (simple_name "data-type:value") (show x)]
+                        , elContent = []
+                        , elLine = Nothing
+                        }
+    y_element = Element { elName = unqual "gating:coordinate"
+                        , elAttribs = [Attr (simple_name "data-type:value") (show y)]
+                        , elContent = []
+                        , elLine = Nothing
+                        }
+    full_element = Element { elName = unqual "gating:vertex"
+                           , elAttribs = []
+                           , elContent = [ Elem x_element, Elem y_element]
+                           , elLine = Nothing
+                           }
+
 
 out_example = putStrLn $ ppcTopElement pp
                 $ custom_info
@@ -120,7 +139,17 @@ to_gate_element RectangleGate{..} = full_element
                           , elContent = [ Elem (gating_dimension rg_x_dim), Elem (gating_dimension rg_y_dim)]
                           , elLine = Nothing
                           }
-to_gate_element PolygonGate{..} = undefined
+to_gate_element PolygonGate{..} = full_element
+  where
+    gate_id_attribute = Attr (simple_name "gating:id") (T.unpack pg_id)
+    attributes = case pg_parent_id of
+                   Nothing -> [gate_id_attribute]
+                   Just x -> [gate_id_attribute, Attr (simple_name "gating:parent_id") (T.unpack x)]
+    full_element = Element { elName = unqual "gating:PolygonGate"
+                          , elAttribs = attributes
+                          , elContent = [ Elem (gating_dimension pg_x_dim), Elem (gating_dimension pg_y_dim)] ++ map (Elem . gating_vertex) pg_points
+                          , elLine = Nothing
+                          }
 
 
 to_xml :: [Gate] -> Element
