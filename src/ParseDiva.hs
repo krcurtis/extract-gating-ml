@@ -1,4 +1,6 @@
 --------------------------------------------------------------------------------
+--- Copyright 2022 Keith Curtis
+--- Copyright 2022 Fred Hutchinson Cancer Center
 --- Parse FACSDiva xml gating file for conversion to Gating-ML 2.0
         
 
@@ -17,9 +19,10 @@ module ParseDiva where
 import Text.XML.Light
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Maybe (catMaybes, fromJust, isJust)
+import Data.Maybe (catMaybes, fromJust, isJust, fromMaybe)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
+import qualified Data.List as L
 
 {-
 
@@ -40,11 +43,13 @@ bdfacs
           compensation -- What to do with compensation?
       gates
 
-TODO link gates for each speciment
+Gates can also be linked to
+  acquisition_worksheets name="Global Worksheets"
+
+
+TODO link fcs filenames for tubes
   <tube name="FITC Stained Control">
   <data_filename>124483.fcs</data_filename>
-
-
 
 TODO Or look for      <acquisition_worksheets name="Global Worksheets">
   /bdfacs/experiment/acquisition_worksheets/worksheet_template
@@ -52,9 +57,7 @@ TODO Or look for      <acquisition_worksheets name="Global Worksheets">
 GATES TODO
   "AND_Classifier", "OR_Classifier", "NOT_Classifier")
 
-TODO Transforms, compensation stuff
-
-there are vthings about biexp_scale in the instrument settings section ...
+there are things about biexp_scale in the instrument settings section, relevant?
 
 Under experiment, theris is a "log_decades" text field, relevant?
 
@@ -100,6 +103,8 @@ data DivaInfo = DivaInfo { di_specimens :: [String]  -- named specimens, there m
                          , di_has_overlap :: Bool  -- some tube names overlap
                          , di_overlapping_tube_names :: [String]  --list of tube names that occur in more than one specimen
                          , di_tube_names :: [String] -- unique listing of the tube names
+                         , di_global_worksheet_compensation_info :: [ (String, [Double])]
+                         , di_global_worksheet_gates :: [DivaGate]
                          }
                 deriving (Show)
 
@@ -198,6 +203,11 @@ collect_gate_set base_node = catMaybes (map parse_gate gate_elements)
   where
     gate_elements = findElements (simple_name "gate")  base_node
 
+collect_from_gates_element :: Element -> [DivaGate]
+collect_from_gates_element node = collect_gate_set gates_node
+  where
+    gates_node = get_gates_element node
+
 
 
 
@@ -254,6 +264,16 @@ parse_point p = do
 
 
 
+find_global_acquistion_node :: Element -> Maybe Element
+find_global_acquistion_node root = do
+  acquistion_node  <- findElement (simple_name "acquisition_worksheets") root
+  -- todo check has name "Global Worksheets"
+  template_node <- findElement (simple_name "worksheet_template") acquistion_node
+  sheet_name <- findAttr (simple_name "name") template_node
+  case sheet_name of
+    "Global Sheet1" -> return template_node
+    _ -> Nothing
+
 
 -- assumes given a parameter node
 single_parameter_compensation :: Element -> Maybe (String, [Double])
@@ -273,16 +293,6 @@ compensation_info node = do
     let parameter_nodes = findElements (simple_name "parameter") node
     return $ catMaybes $ map single_parameter_compensation parameter_nodes
 
-{-
-instrument_settings_nodes :: Element -> [Element]
-instrument_settings_nodes node = findElements (simple_name "instrument_settings")  node
-
-
-tube_nodes :: Element -> [Element]
-tube_nodes node = findElements (simple_name "tube")  node
-
-
--}
 
 parse_diva_tube :: Element -> DivaTube
 parse_diva_tube tube_node = DivaTube{..}
@@ -319,15 +329,11 @@ load_diva_info filename = do
         di_overlapping_tube_names = Set.toList $ find_duplicates Set.empty Set.empty all_tubes
         di_has_overlap = length di_overlapping_tube_names > 0
         di_tube_names = Set.toList . Set.fromList $ all_tubes
+        global_acquisition_node = find_global_acquistion_node root
+        (di_global_worksheet_compensation_info, di_global_worksheet_gates) = case global_acquisition_node of
+                                                                               Nothing -> ([], [])
+                                                                               Just acq -> (fromMaybe [] . compensation_info $ acq, collect_from_gates_element acq)
+        
     return DivaInfo{..}
 
 
-show_tube_gates :: DivaInfo -> IO ()
-show_tube_gates DivaInfo{..} = do
-  let records = [ (s, dt_tube_name t, length . dt_gates $ t ) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
-  mapM_ (\(s,t, g) -> putStrLn $ "Specimen: " <> s <> "  Tube:" <> t <> "  n_gates: " <> (show g)) records
-
-show_tube_compensation_summary :: DivaInfo -> IO ()
-show_tube_compensation_summary DivaInfo{..} = do
-  let records = [ (s, dt_tube_name t, length . dt_compensation_info $ t) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
-  mapM_ (\(s,t, c) -> putStrLn $ "Specimen: " <> s <> "  Tube:" <> t <> "  Number parameters with compensation: " <> (show c)) records

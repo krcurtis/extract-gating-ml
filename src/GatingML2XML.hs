@@ -1,4 +1,6 @@
 --------------------------------------------------------------------------------
+--- Copyright 2022 Keith Curtis
+--- Copyright 2022 Fred Hutchinson Cancer Center
 --- Generate XML for GatingML structures
 
 {-# LANGUAGE RecordWildCards #-}
@@ -31,8 +33,11 @@ gating:min="10" gating:max="20" gating:compensation-ref="uncompensated">
 module GatingML2XML where
 
 import Text.XML.Light
+import Text.XML.Light.Output
+
 import Data.Maybe (isNothing)
 import qualified Data.Text as T
+import qualified Data.List as L
 
 --------------------------------------------------------------------------------
 
@@ -49,10 +54,9 @@ xsi = Attr (simple_name "xmlns:xsi") "http://www.w3.org/2001/XMLSchema-instance"
 gating = Attr (simple_name "xmlns:gating") "http://www.isac-net.org/std/Gating-ML/v2.0/gating"
 transforms = Attr (simple_name "xmlns:transforms") "http://www.isac-net.org/std/Gating-ML/v2.0/transformations"
 datatype = Attr (simple_name "xmlns:data-type") "http://www.isac-net.org/std/Gating-ML/v2.0/datatypes"
-schema_location = Attr (simple_name "xsi:schemaLocation") (unlines [ ""
-                                                                   , "http://www.isac-net.org/std/Gating-ML/v2.0/gating ../XSD/Gating-ML.v2.0.xsd"
-                                                                   , "http://www.isac-net.org/std/Gating-ML/v2.0/transformations ../XSD/Transformations.v2.0.xsd"
-                                                                   , "http://www.isac-net.org/std/Gating-ML/v2.0/datatypes ../XSD/DataTypes.v2.0.xsd"])
+schema_location = Attr (simple_name "xsi:schemaLocation") (L.intercalate " "  [ "http://www.isac-net.org/std/Gating-ML/v2.0/gating ../XSD/Gating-ML.v2.0.xsd"
+                                                                            , "http://www.isac-net.org/std/Gating-ML/v2.0/transformations ../XSD/Transformations.v2.0.xsd"
+                                                                            , "http://www.isac-net.org/std/Gating-ML/v2.0/datatypes ../XSD/DataTypes.v2.0.xsd"])
 
 custom_info = Element { elName = unqual "data-type:custom_info"
                           , elAttribs = [ ]
@@ -80,12 +84,12 @@ gating_dimension GatingDimension{..} = full_element
                           , elLine = Nothing
                           }
 
-    attributes' = if isNothing gd_minimum
-                  then []
-                  else [Attr (simple_name "gating:min") (show gd_minimum)]
-    attributes'' = if isNothing gd_maximum
-                  then attributes'
-                  else attributes' ++ [Attr (simple_name "gating:max") (show gd_maximum)]
+    attributes' = case gd_minimum of
+                    Nothing -> []
+                    Just minval -> [Attr (simple_name "gating:min") (show minval)]
+    attributes'' = case gd_maximum of
+                     Nothing -> attributes'
+                     Just maxval -> attributes' ++ [Attr (simple_name "gating:max") (show maxval)]
 
     compensation_attribute = case gd_compensation_ref of
                                Nothing -> Attr (simple_name "gating:compensation-ref") "uncompensated"
@@ -160,3 +164,9 @@ to_xml gates = top
                           , elContent = map (Elem . to_gate_element)  gates
                           , elLine = Nothing
                           }
+
+xml_to_file :: String -> Element -> IO ()
+xml_to_file filename root = do
+  writeFile filename (ppTopElement root)
+
+  

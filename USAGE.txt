@@ -1,0 +1,15 @@
+Usage:
+  extract-gating-ml extract-global -i=<file> -o=<file>
+  extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<file> -o=<file>  
+  extract-gating-ml summary -i=<diva_xml>
+  extract_gating-ml summary-comp-channels -i=<diva_xml>
+
+Options:
+  -h --help                 show this help text
+  -i --input_diva_xml FILE  input DIVA XML file
+  -o --output_file FILE     output GatingML 2.0 file
+  -s --specimen LABEL       specimen label in DIVA XML
+  -t --tube LABEL           tube label in DIVA XML
+
+Examples:
+  extract-gating-ml extract-global --input_diva_xml diva.xml --output_file gates.gatingml # Extract GatingML gates from DIVA XML global worksheet
