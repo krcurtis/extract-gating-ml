@@ -9,16 +9,18 @@
 module Main where
 
 import Data.Semigroup ((<>))
-import Control.Monad (when)
+import Control.Monad (when, forM_)
 import System.Environment (getArgs)
 import System.Console.Docopt
 import Control.DeepSeq
 import Data.Maybe (isNothing, fromJust)
+import qualified Data.Map as Map
 
 --------------------------------------------------------------------------------
 
 import ParseDiva
 import QueryDiva
+import QueryDivaGates
 import Diva2GatingML
 import GatingML2XML
 
@@ -102,6 +104,22 @@ main = do
     if isNothing diva_gates
       then error $ "ERROR specimen and tube combination was not found: " <> specimen <> "/" <> tube_label
       else show_hierarchy (fromJust diva_gates)
+
+
+  when (args `isPresent` (command "summary-all-gates")) $ do
+    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_info <- load_diva_info diva_file
+
+    putStrLn "Gates from Global Worksheet:"
+    show_hierarchy (di_global_worksheet_gates diva_info)
+    putStrLn ""
+
+    let per_specimen_tube_gates = [ (s, dt_tube_name t, dt_gates t) | (s, tubes) <- Map.toList . di_specimen_tubes $ diva_info, t <- tubes ]   
+    forM_ per_specimen_tube_gates (\(s,t,g) -> do
+                                                 putStrLn $ "Specimen: " <> s <> "  Tube: " <> t
+                                                 show_hierarchy g
+                                                 putStrLn ""
+                                  )
 
 
   when (args `isPresent` (command "extract-global")) $ do

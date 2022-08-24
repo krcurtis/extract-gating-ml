@@ -31,6 +31,7 @@ library
       Lib
       ParseDiva
       QueryDiva
+      QueryDivaGates
   other-modules:
       Paths_extract_gating_ml
   hs-source-dirs:
