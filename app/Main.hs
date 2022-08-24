@@ -79,13 +79,31 @@ main = do
     diva_info <- load_diva_info diva_file
     show_diva_info diva_info
 
+
   when (args `isPresent` (command "summary-comp-channels")) $ do
     diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
     diva_info <- load_diva_info diva_file
     show_all_compensated_channels diva_info
 
 
-      
+  when (args `isPresent` (command "summary-global-gates")) $ do
+    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_info <- load_diva_info diva_file
+    show_hierarchy (di_global_worksheet_gates diva_info)
+
+
+  when (args `isPresent` (command "summary-tube-gates")) $ do
+    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_info <- load_diva_info diva_file
+    specimen <- args `getArgOrExit` (longOption "specimen")
+    tube_label <- args `getArgOrExit` (longOption "tube")    
+
+    let diva_gates = find_specimen_tube_gates diva_info specimen tube_label
+    if isNothing diva_gates
+      then error $ "ERROR specimen and tube combination was not found: " <> specimen <> "/" <> tube_label
+      else show_hierarchy (fromJust diva_gates)
+
+
   when (args `isPresent` (command "extract-global")) $ do
     diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
     output_file <- args `getArgOrExit` (longOption "output_file")
@@ -94,6 +112,7 @@ main = do
     let gates = map convert_diva_gate (di_global_worksheet_gates diva_info)
         xml_root = gates `deepseq` to_xml gates
     xml_to_file output_file xml_root
+
 
   when (args `isPresent` (command "extract-tube")) $ do
     diva_file <- args `getArgOrExit` (longOption "input_diva_xml")

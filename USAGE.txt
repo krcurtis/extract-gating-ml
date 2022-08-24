@@ -1,8 +1,10 @@
 Usage:
-  extract-gating-ml extract-global -i=<file> -o=<file>
-  extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<file> -o=<file>  
+  extract-gating-ml extract-global -i=<diva_xml> -o=<gatingml_output_file>
+  extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<diva_xml> -o=<gatingml_output_file>
   extract-gating-ml summary -i=<diva_xml>
-  extract_gating-ml summary-comp-channels -i=<diva_xml>
+  extract-gating-ml summary-comp-channels -i=<diva_xml>
+  extract-gating-ml summary-global-gates -i=<diva_xml>
+  extract-gating-ml summary-tube-gates  -s=<slabel> -t=<tlabel> -i=<diva_xml>
 
 Options:
   -h --help                 show this help text
