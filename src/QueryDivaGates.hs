@@ -95,7 +95,7 @@ build_hierarchy root (x:xs) = build_hierarchy root' xs
 brief_gate_info :: DivaGate -> String
 brief_gate_info gate | (r_type . dg_region $ gate) == RectangleRegion = (T.unpack . dg_name $ gate) <> " Rectangle [" <> (T.unpack . r_xparam . dg_region $ gate) <> ", " <> (T.unpack . r_yparam . dg_region $ gate) <> "]"
 brief_gate_info gate | (r_type . dg_region $ gate) == PolygonRegion = (T.unpack . dg_name $ gate) <> " Polygon [" <> (T.unpack . r_xparam . dg_region $ gate) <> ", " <> (T.unpack . r_yparam . dg_region $ gate) <> "], n_points: " <> (show . length . r_points . dg_region $ gate)
-brief_gate_info gate | (r_type . dg_region $ gate) == IntervalRegion = (T.unpack . dg_name $ gate) <> " Interval [" <> (T.unpack . r_xparam . dg_region $ gate) <> ", " <> (T.unpack . r_yparam . dg_region $ gate) <> "]"
+brief_gate_info gate | (r_type . dg_region $ gate) == IntervalRegion = (T.unpack . dg_name $ gate) <> " Interval [" <> (T.unpack . r_xparam . dg_region $ gate) <> "]"
 brief_gate_info gate | (r_type . dg_region $ gate) == UnknownRegion = (T.unpack . dg_name $ gate) <> " Unknown [" <> (T.unpack . r_xparam . dg_region $ gate) <> ", " <> (T.unpack . r_yparam . dg_region $ gate) <> "]"
 
 

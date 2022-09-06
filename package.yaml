@@ -29,7 +29,8 @@ dependencies:
 - ad
 - docopt
 - deepseq
-
+- boxes
+- MissingH
 
 library:
   source-dirs: src

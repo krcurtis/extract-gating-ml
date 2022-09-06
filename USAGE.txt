@@ -1,11 +1,11 @@
 Usage:
-  extract-gating-ml extract-global -i=<diva_xml> -o=<gatingml_output_file>
+  extract-gating-ml extract-global -i=<diva_xml>  -o=<gatingml_output_file> 
   extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<diva_xml> -o=<gatingml_output_file>
-  extract-gating-ml summary -i=<diva_xml>
-  extract-gating-ml summary-comp-channels -i=<diva_xml>
-  extract-gating-ml summary-global-gates -i=<diva_xml>
-  extract-gating-ml summary-tube-gates  -s=<slabel> -t=<tlabel> -i=<diva_xml>
-  extract-gating-ml summary-all-gates -i=<diva_xml>  
+  extract-gating-ml summary <diva_xml>
+  extract-gating-ml summary-comp-channels <diva_xml>
+  extract-gating-ml summary-global-gates <diva_xml>
+  extract-gating-ml summary-tube-gates  -s=<slabel> -t=<tlabel> <diva_xml>
+  extract-gating-ml summary-all-gates <diva_xml>  
 
 Options:
   -h --help                 show this help text
@@ -16,3 +16,14 @@ Options:
 
 Examples:
   extract-gating-ml extract-global --input_diva_xml diva.xml --output_file gates.gatingml # Extract GatingML gates from DIVA XML global worksheet
+
+
+Commands:
+  extract-global         Extract the gates and compensation matrix from the global worksheet section
+  extract-tube           Extract the gates and compensation matrix for a specific specimen and tube combination
+  summary                For the global worksheet and all specimen/tube combinations show the number of gates and compensation parameters
+  summary-comp-channels  For the global worksheet and all specimen/tube combinations show a list of the compensation parameters
+  summary-global-gates   For the global worksheet, show the gate hierarchy and some short information about the gates
+  summary-tube-gates     For a specific specimen and tube combination, show the gate hierarchy and some short information about the gates
+  summary-all-gates      For the global worksheet and all specimen/tube combinations, show the gate hierarchy and some short information about the gates
+

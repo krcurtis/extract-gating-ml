@@ -76,26 +76,26 @@ main = do
 
 
   when (args `isPresent` (command "summary")) $ do
-    --print . show $ args
-    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
+    let unit = diva_info `deepseq` ()
     show_diva_info diva_info
 
 
   when (args `isPresent` (command "summary-comp-channels")) $ do
-    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
     show_all_compensated_channels diva_info
 
 
   when (args `isPresent` (command "summary-global-gates")) $ do
-    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
     show_hierarchy (di_global_worksheet_gates diva_info)
 
 
   when (args `isPresent` (command "summary-tube-gates")) $ do
-    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
     specimen <- args `getArgOrExit` (longOption "specimen")
     tube_label <- args `getArgOrExit` (longOption "tube")    
@@ -107,7 +107,7 @@ main = do
 
 
   when (args `isPresent` (command "summary-all-gates")) $ do
-    diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
+    diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
 
     putStrLn "Gates from Global Worksheet:"

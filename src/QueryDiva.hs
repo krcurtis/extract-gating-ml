@@ -18,6 +18,7 @@ import qualified Data.List as L
 
 import ParseDiva
 
+import PrettyPrintTable
 
 --------------------------------------------------------------------------------
 
@@ -39,9 +40,11 @@ show_tube_info DivaInfo{..} = do
 show_diva_info :: DivaInfo -> IO ()
 show_diva_info DivaInfo{..} = do
   putStrLn $ "Global Worksheet n_gates: " <> (show . length $ di_global_worksheet_gates) <> "  compensation params: " <> (show . length $ di_global_worksheet_compensation_info )
-  putStrLn $ L.intercalate "\t" ["Specimen", "Tube", "n_gates", "n_compensation_params"]
-  let records = [ (s, dt_tube_name t, length . dt_gates $ t, length . dt_compensation_info $ t) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
-  mapM_ (\(s,t,g,c) -> putStrLn $ L.intercalate "\t" [s, t, show g, show c]) records
+  let records = [ (s, dt_tube_name t, show . length . dt_gates $ t, show . length . dt_compensation_info $ t) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
+
+  display_column4_table ("Specimen", "Tube", "n_gates", "n_compensation_params") records
+  --putStrLn $ L.intercalate "\t" ["Specimen", "Tube", "n_gates", "n_compensation_params"]
+  -- mapM_ (\(s,t,g,c) -> putStrLn $ L.intercalate "\t" [s, t, show g, show c]) records
 
 
 find_specimen_tube_gates :: DivaInfo -> String -> String -> Maybe [DivaGate]
@@ -76,9 +79,11 @@ find_all_gates_with_same_name gate_name DivaInfo{..} = global_gate ++ tube_gates
 show_all_compensated_channels :: DivaInfo -> IO ()
 show_all_compensated_channels DivaInfo{..} = do
   putStrLn $ "Global Worksheet compensated channels: " <> (L.intercalate ","  (map fst di_global_worksheet_compensation_info))
-  putStrLn $ L.intercalate "\t" ["Specimen", "Tube", "compensation_channels"]
-  let records = [ (s, dt_tube_name t, map fst . dt_compensation_info $ t) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
-  mapM_ (\(s,t,cs) -> putStrLn $ L.intercalate "\t" [s, t, L.intercalate "," cs]) records
+  --putStrLn $ L.intercalate "\t" ["Specimen", "Tube", "compensation_channels"]
+  --mapM_ (\(s,t,cs) -> putStrLn $ L.intercalate "\t" [s, t, L.intercalate "," cs]) records
+  let records = [ (s, dt_tube_name t, L.intercalate "," . map fst . dt_compensation_info $ t) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
+
+  display_column3_table ("Specimen", "Tube", "compensation_channels") records
 
 
 

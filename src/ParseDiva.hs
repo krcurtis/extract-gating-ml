@@ -8,6 +8,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Werror=missing-fields #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 
 module ParseDiva where
@@ -15,6 +17,8 @@ module ParseDiva where
 
 
 
+import GHC.Generics
+import Control.DeepSeq
 
 import Text.XML.Light
 import qualified Data.Text as T
@@ -67,7 +71,7 @@ Under experiment, theris is a "log_decades" text field, relevant?
 
 
 data RegionType = RectangleRegion | PolygonRegion | IntervalRegion | UnknownRegion
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, NFData)
 
 data Region = Region
                 { r_type :: RegionType
@@ -75,7 +79,7 @@ data Region = Region
                 , r_yparam :: T.Text
                 , r_points :: [(Double, Double)]
                 }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, NFData)
 
 
 data DivaGate = DivaGate
@@ -91,7 +95,7 @@ data DivaGate = DivaGate
             , dg_y_scale :: Double
             , dg_input :: T.Text -- same as parent?
             }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, NFData)
             
 type DivaGateSet = [DivaGate]
 
@@ -106,14 +110,14 @@ data DivaInfo = DivaInfo { di_specimens :: [String]  -- named specimens, there m
                          , di_global_worksheet_compensation_info :: [ (String, [Double])]
                          , di_global_worksheet_gates :: [DivaGate]
                          }
-                deriving (Show)
+                deriving (Show, Generic, NFData)
 
 data DivaTube = DivaTube { dt_tube_name :: String
                          , dt_gates :: [DivaGate]
                          , dt_has_compensation :: Bool
                          , dt_compensation_info :: [ (String, [Double])]
                          }
-                deriving (Show)
+                deriving (Show, Generic, NFData)
 
 
 --------------------------------------------------------------------------------
@@ -322,6 +326,7 @@ find_duplicates so_far dups (x:xs) | otherwise = find_duplicates (Set.insert x s
 load_diva_info :: String -> IO DivaInfo
 load_diva_info filename = do
     root <- load_root_node filename
+    --putStrLn "Loaded root node"
     let smap = specimen_mapping root
         di_specimens = map fst $ Map.toList smap
         di_specimen_tubes = Map.fromList [ (s, collect_tube_info e) | (s,e) <- Map.toList smap]
