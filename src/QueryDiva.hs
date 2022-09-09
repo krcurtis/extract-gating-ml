@@ -16,9 +16,14 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.List as L
 
-import ParseDiva
 
+
+--------------------------------------------------------------------------------
+
+import ParseDiva
 import PrettyPrintTable
+import GateComparison
+
 
 --------------------------------------------------------------------------------
 
@@ -86,6 +91,27 @@ show_all_compensated_channels DivaInfo{..} = do
   display_column3_table ("Specimen", "Tube", "compensation_channels") records
 
 
+
+
+summarize_gate_compensation_comparison :: [DivaGate] -> [(String, [Double])] -> [DivaGate] -> [ (String, [Double])] -> [String]
+summarize_gate_compensation_comparison ref_gates ref_comp target_gates target_comp = results
+  where
+    GateComparison{..} = compare_gate_lists ref_gates target_gates
+    comp_info = compare_compensation_matrices ref_comp target_comp
+    comp_msg = case comp_info of
+                 Left msg -> msg
+                 Right _ -> "Matched"
+    results = [comp_msg, show gc_matches, show gc_mismatches, show gc_missing, show gc_extra]
+
+show_comparison_with_global_worksheet :: DivaInfo -> IO ()
+show_comparison_with_global_worksheet DivaInfo{..} = do
+  let ref_gates = di_global_worksheet_gates
+      ref_comp = di_global_worksheet_compensation_info
+      comp_gates = [ (s, dt_tube_name t, dt_compensation_info t, dt_gates t) | (s, tubes) <- Map.toList di_specimen_tubes, t <- tubes ]
+      compare_them (specimen_name, tube_name, comp, gates) = [specimen_name, tube_name] ++ summarize_gate_compensation_comparison ref_gates ref_comp gates comp
+      rows = map compare_them comp_gates
+  display_many_column_table ["Specimen", "Tube", "compensation", "n_gate_matches", "n_gate_mismatches", "n_gate_missing", "n_gate_extra"] rows
+  
 
 {-
 show_gates_with_same_name :: DivaInfo -> String -> IO ()

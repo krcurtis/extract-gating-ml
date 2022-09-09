@@ -5,7 +5,8 @@ Usage:
   extract-gating-ml summary-comp-channels <diva_xml>
   extract-gating-ml summary-global-gates <diva_xml>
   extract-gating-ml summary-tube-gates  -s=<slabel> -t=<tlabel> <diva_xml>
-  extract-gating-ml summary-all-gates <diva_xml>  
+  extract-gating-ml summary-all-gates <diva_xml>
+  extract-gating-ml compare-vs-global <diva_xml>
 
 Options:
   -h --help                 show this help text

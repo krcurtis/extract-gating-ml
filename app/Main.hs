@@ -120,6 +120,10 @@ main = do
                                                  show_hierarchy g
                                                  putStrLn ""
                                   )
+  when (args `isPresent` (command "compare-vs-global")) $ do
+    diva_file <- args `getArgOrExit` (argument "diva_xml")
+    diva_info <- load_diva_info diva_file
+    show_comparison_with_global_worksheet diva_info
 
 
   when (args `isPresent` (command "extract-global")) $ do
