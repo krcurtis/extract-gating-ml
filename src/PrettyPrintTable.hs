@@ -69,6 +69,21 @@ display_column4_table (label1, label2, label3, label4) rows = do
     Box.printBox table
 
 
+display_many_column_table :: [String] -> [[String]] -> IO ()
+display_many_column_table header rows = do
+    let n_rows = length rows
+        column_vals = L.transpose rows
+        n_cols = length columns
+        alignments = Box.left : Box.left : repeat Box.right
+        columns = map (\(x,y,z) -> stylized_column x y z) (zip3 alignments header column_vals)
+        sep = stylized_separator n_rows
+        table =  Box.hcat Box.top (L.intersperse sep columns)
+    Box.printBox table
+
+
+
+
+
 stylized_column :: Box.Alignment -> String -> [String] -> Box.Box
 stylized_column align header rows = let header_box = Box.text header
                                         rest_box = Box.vcat align (map Box.text rows)

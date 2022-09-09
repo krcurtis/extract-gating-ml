@@ -26,4 +26,5 @@ Commands:
   summary-global-gates   For the global worksheet, show the gate hierarchy and some short information about the gates
   summary-tube-gates     For a specific specimen and tube combination, show the gate hierarchy and some short information about the gates
   summary-all-gates      For the global worksheet and all specimen/tube combinations, show the gate hierarchy and some short information about the gates
+  compare-vs-global      Compare gates and compensation matrix for the specimen/tube combinations versus the global worksheet
 

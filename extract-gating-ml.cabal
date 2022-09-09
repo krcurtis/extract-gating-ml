@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Diva2GatingML
+      GateComparison
       GatingML
       GatingML2XML
       Lib
@@ -45,6 +46,7 @@ library
     , containers
     , deepseq
     , docopt
+    , hmatrix
     , hspec
     , optparse-applicative >=0.15.1
     , text
@@ -67,6 +69,7 @@ executable extract-gating-ml
     , deepseq
     , docopt
     , extract-gating-ml
+    , hmatrix
     , hspec
     , optparse-applicative >=0.15.1
     , text
@@ -90,6 +93,7 @@ test-suite extract-gating-ml-test
     , deepseq
     , docopt
     , extract-gating-ml
+    , hmatrix
     , hspec
     , optparse-applicative >=0.15.1
     , text
