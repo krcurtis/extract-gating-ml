@@ -80,6 +80,7 @@ test-suite extract-gating-ml-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      ParseDivaXMLSpec
       Paths_extract_gating_ml
   hs-source-dirs:
       test

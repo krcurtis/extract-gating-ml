@@ -43,11 +43,17 @@ extract_gates_from_tube_info :: DivaTube -> [Gate]
 extract_gates_from_tube_info DivaTube{..} = map convert_diva_gate dt_gates
 
 
+diva_parent_to_id :: T.Text -> Maybe T.Text
+diva_parent_to_id diva_parent_text = case (L.last . T.splitOn "\\" $ diva_parent_text) of
+                                       "All Events" -> Nothing
+                                       x -> Just x
+
+
 convert_diva_gate :: DivaGate -> Gate
 convert_diva_gate DivaGate{..} | (r_type dg_region) == RectangleRegion = RectangleGate{..}
   where
     rg_id = dg_name
-    rg_parent_id = Just dg_parent
+    rg_parent_id = diva_parent_to_id dg_parent
 
     [dx_min, dx_max, dy_min, dy_max] = let points = case (length (r_points dg_region) == 4) of
                                                   False -> error $ "Rectangle Region for " <> T.unpack dg_name <> " has incorrect number of vertices"
@@ -72,7 +78,7 @@ convert_diva_gate DivaGate{..} | (r_type dg_region) == RectangleRegion = Rectang
 convert_diva_gate DivaGate{..} | (r_type dg_region) == PolygonRegion = PolygonGate{..}
   where
     pg_id = dg_name
-    pg_parent_id = Just dg_parent
+    pg_parent_id = diva_parent_to_id dg_parent
 
     x_fluorescent = r_xparam dg_region
     y_fluorescent = r_yparam dg_region

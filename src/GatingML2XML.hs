@@ -77,7 +77,7 @@ gating_dimension GatingDimension{..} = full_element
 
     --TODO handle transform reference?
 
-    channel_attribute = Attr (simple_name "data_type:name") (T.unpack gd_name)
+    channel_attribute = Attr (simple_name "data-type:name") (T.unpack gd_name)
     dim_element = Element { elName = unqual "data-type:fcs-dimension"
                           , elAttribs = [ channel_attribute ]
                           , elContent = []
