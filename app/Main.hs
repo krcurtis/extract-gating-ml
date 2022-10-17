@@ -132,7 +132,10 @@ main = do
     diva_info <- load_diva_info diva_file
 
     let gates = map convert_diva_gate (di_global_worksheet_gates diva_info)
-        xml_root = gates `deepseq` to_xml gates
+        comp_matrix = convert_diva_compensation (di_global_worksheet_compensation_info diva_info)    
+        xml_root = gates `deepseq` to_xml comp_matrix gates
+
+        
     xml_to_file output_file xml_root
 
 
@@ -148,6 +151,6 @@ main = do
       then error $ "ERROR specimen and tube combination was not found: " <> specimen <> "/" <> tube_label
       else
         let gates = map convert_diva_gate (fromJust diva_gates)
-            xml_root = gates `deepseq` to_xml gates
+            xml_root = gates `deepseq` to_gates_only_xml gates
         in
           xml_to_file output_file xml_root

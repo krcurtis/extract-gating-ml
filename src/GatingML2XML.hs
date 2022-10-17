@@ -95,7 +95,7 @@ gating_dimension GatingDimension{..} = full_element
                                Nothing -> Attr (simple_name "gating:compensation-ref") "uncompensated"
                                Just x  -> Attr (simple_name "gating:compensation-ref") (T.unpack x)
     attributes = attributes'' ++ [compensation_attribute]
-    
+
     full_element = Element { elName = unqual "gating:dimension"
                            , elAttribs = attributes
                            , elContent = [ Elem dim_element]
@@ -156,8 +156,73 @@ to_gate_element PolygonGate{..} = full_element
                           }
 
 
-to_xml :: [Gate] -> Element
-to_xml gates = top
+
+to_coeff_element :: Double -> Element
+to_coeff_element x = full_element
+  where
+    full_element = Element { elName = unqual "transforms:coefficient"
+                           , elAttribs = [ Attr (simple_name "transforms:value") (show x) ]
+                           , elContent = []
+                           , elLine = Nothing
+                           }
+
+
+to_spectrum_element :: [Double] -> Element
+to_spectrum_element coeffs = full_element
+  where
+    full_element = Element { elName = unqual "transforms:spectrum"
+                           , elAttribs = []
+                           , elContent = map (Elem . to_coeff_element) coeffs
+                           , elLine = Nothing
+                           }
+
+to_fluorchromes_element :: [T.Text] -> Element
+to_fluorchromes_element fluorochromes = full_element
+  where
+    to_info_element label = Element { elName = unqual "data-type:fcs-dimension"
+                           , elAttribs = [ Attr (simple_name "data-type:name") (T.unpack label) ]
+                           , elContent = []
+                           , elLine = Nothing
+                           }
+    full_element = Element { elName = unqual "transforms:fluorochromes"
+                           , elAttribs = [ ]
+                           , elContent = map (Elem . to_info_element) fluorochromes
+                           , elLine = Nothing
+                           }
+
+
+to_placeholder_detectors_element :: Int -> Element
+to_placeholder_detectors_element n = full_element
+  where
+    to_detector_element label = Element { elName = unqual "data-type:fcs-dimension"
+                           , elAttribs = [ Attr (simple_name "data-type:name") label ]
+                           , elContent = []
+                           , elLine = Nothing
+                           }
+    full_element = Element { elName = unqual "transforms:detectors"
+                           , elAttribs = [ ]
+                           , elContent = map (Elem . to_detector_element) [ "D" ++ show i | i <- [1..n]]
+                           , elLine = Nothing
+                           }
+
+
+
+to_spectrum_matrix_element :: Compensation -> Element
+to_spectrum_matrix_element Compensation{..} = full_element
+  where
+    n = length c_fluorchromes
+    full_element = Element { elName = unqual "transforms:spectrumMatrix"
+                           , elAttribs = [ Attr (simple_name "transforms:id") "M", Attr (simple_name "transforms:matrix-inverted-already") "true" ]
+                           , elContent = [ Elem (to_fluorchromes_element c_fluorchromes), Elem (to_placeholder_detectors_element n)] ++ map (Elem . to_spectrum_element) c_spectrum_rows
+                           , elLine = Nothing
+                           }
+
+
+
+
+
+to_gates_only_xml :: [Gate] -> Element
+to_gates_only_xml gates = top
   where
     top = Element { elName = unqual "gating:Gating-ML"
                           , elAttribs = [ xsi, gating, transforms, datatype, schema_location]
@@ -165,8 +230,16 @@ to_xml gates = top
                           , elLine = Nothing
                           }
 
+
+to_xml :: Compensation -> [Gate] -> Element
+to_xml compensation gates = top
+  where
+    top = Element { elName = unqual "gating:Gating-ML"
+                          , elAttribs = [ xsi, gating, transforms, datatype, schema_location]
+                          , elContent = [Elem . to_spectrum_matrix_element $ compensation] ++  map (Elem . to_gate_element)  gates
+                          , elLine = Nothing
+                          }
+
 xml_to_file :: String -> Element -> IO ()
 xml_to_file filename root = do
   writeFile filename (ppTopElement root)
-
-  

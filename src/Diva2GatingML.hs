@@ -146,6 +146,16 @@ transform_coord True True scale_factor = \x -> let y = x/s
 
 
 
+convert_diva_compensation :: [ (String, [Double])] -> Compensation
+convert_diva_compensation info_rows = Compensation{..}
+  where
+    c_fluorchromes = map (T.pack . fst) info_rows
+    c_spectrum_rows = map snd info_rows
+
+
+
+
+
 {-
 {-# LANGUAGE FlexibleContexts #-}
 test_w_fit_func x = w_fit_func x
