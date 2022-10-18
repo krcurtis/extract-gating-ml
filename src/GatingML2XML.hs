@@ -191,17 +191,18 @@ to_fluorchromes_element fluorochromes = full_element
                            }
 
 
-to_placeholder_detectors_element :: Int -> Element
-to_placeholder_detectors_element n = full_element
+-- flowkit assumes that detector labels correspond to PnN labels
+to_detectors_element :: [T.Text] -> Element
+to_detectors_element labels = full_element
   where
     to_detector_element label = Element { elName = unqual "data-type:fcs-dimension"
-                           , elAttribs = [ Attr (simple_name "data-type:name") label ]
+                           , elAttribs = [ Attr (simple_name "data-type:name") (T.unpack label) ]
                            , elContent = []
                            , elLine = Nothing
                            }
     full_element = Element { elName = unqual "transforms:detectors"
                            , elAttribs = [ ]
-                           , elContent = map (Elem . to_detector_element) [ "D" ++ show i | i <- [1..n]]
+                           , elContent = map (Elem . to_detector_element) labels
                            , elLine = Nothing
                            }
 
@@ -210,10 +211,9 @@ to_placeholder_detectors_element n = full_element
 to_spectrum_matrix_element :: Compensation -> Element
 to_spectrum_matrix_element Compensation{..} = full_element
   where
-    n = length c_fluorchromes
     full_element = Element { elName = unqual "transforms:spectrumMatrix"
                            , elAttribs = [ Attr (simple_name "transforms:id") "M", Attr (simple_name "transforms:matrix-inverted-already") "true" ]
-                           , elContent = [ Elem (to_fluorchromes_element c_fluorchromes), Elem (to_placeholder_detectors_element n)] ++ map (Elem . to_spectrum_element) c_spectrum_rows
+                           , elContent = [ Elem (to_fluorchromes_element c_fluorchromes), Elem (to_detectors_element c_fluorchromes)] ++ map (Elem . to_spectrum_element) c_spectrum_rows
                            , elLine = Nothing
                            }
 
