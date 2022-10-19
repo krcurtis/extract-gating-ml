@@ -20,6 +20,7 @@ import Numeric.AD.Newton.Double
 --import Numeric.AD.Internal.Type
 --import Numeric.AD.Rank1.Forward.Double
 import Numeric.AD.Double
+import qualified Numeric.LinearAlgebra as NLA
 
 import qualified Data.Text as T
 
@@ -144,13 +145,27 @@ transform_coord True True scale_factor = \x -> let y = x/s
     p = last . take 30 $ (findZero w_fit_func 1)
 
 
-
-
+{-
+-- this version assumes the matrix-already-inverted flag can be used
 convert_diva_compensation :: [ (String, [Double])] -> Compensation
 convert_diva_compensation info_rows = Compensation{..}
   where
-    c_fluorchromes = map (T.pack . fst) info_rows
+    c_fluorochromes = map (T.pack . fst) info_rows
     c_spectrum_rows = map snd info_rows
+-}
+
+--apply a matrix inverse
+convert_diva_compensation :: [ (String, [Double])] -> Compensation
+convert_diva_compensation info_rows = Compensation{..}
+  where
+    n = length info_rows    
+    c_fluorochromes = map (T.pack . fst) info_rows
+    rows = map snd info_rows    
+
+    m = NLA.matrix n (concat rows)
+    m' = NLA.tr . NLA.inv $ m
+    row_vectors = NLA.toRows m'
+    c_spectrum_rows = map NLA.toList row_vectors
 
 
 

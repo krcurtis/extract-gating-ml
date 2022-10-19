@@ -38,10 +38,15 @@ import Text.XML.Light.Output
 import Data.Maybe (isNothing)
 import qualified Data.Text as T
 import qualified Data.List as L
+import qualified Data.Set as Set
 
 --------------------------------------------------------------------------------
 
 import GatingML
+
+
+null_compensation = "uncompensated"
+default_compensation = "Comp_M"
 
 
 pp = useShortEmptyTags (const False) defaultConfigPP
@@ -92,7 +97,7 @@ gating_dimension GatingDimension{..} = full_element
                      Just maxval -> attributes' ++ [Attr (simple_name "gating:max") (show maxval)]
 
     compensation_attribute = case gd_compensation_ref of
-                               Nothing -> Attr (simple_name "gating:compensation-ref") "uncompensated"
+                               Nothing -> Attr (simple_name "gating:compensation-ref") null_compensation
                                Just x  -> Attr (simple_name "gating:compensation-ref") (T.unpack x)
     attributes = attributes'' ++ [compensation_attribute]
 
@@ -176,8 +181,8 @@ to_spectrum_element coeffs = full_element
                            , elLine = Nothing
                            }
 
-to_fluorchromes_element :: [T.Text] -> Element
-to_fluorchromes_element fluorochromes = full_element
+to_fluorochromes_element :: [T.Text] -> Element
+to_fluorochromes_element fluorochromes = full_element
   where
     to_info_element label = Element { elName = unqual "data-type:fcs-dimension"
                            , elAttribs = [ Attr (simple_name "data-type:name") (T.unpack label) ]
@@ -212,8 +217,8 @@ to_spectrum_matrix_element :: Compensation -> Element
 to_spectrum_matrix_element Compensation{..} = full_element
   where
     full_element = Element { elName = unqual "transforms:spectrumMatrix"
-                           , elAttribs = [ Attr (simple_name "transforms:id") "M", Attr (simple_name "transforms:matrix-inverted-already") "true" ]
-                           , elContent = [ Elem (to_fluorchromes_element c_fluorchromes), Elem (to_detectors_element c_fluorchromes)] ++ map (Elem . to_spectrum_element) c_spectrum_rows
+                           , elAttribs = [ Attr (simple_name "transforms:id") default_compensation, Attr (simple_name "transforms:matrix-inverted-already") "false" ]
+                           , elContent = [ Elem (to_fluorochromes_element c_fluorochromes), Elem (to_detectors_element c_fluorochromes)] ++ map (Elem . to_spectrum_element) c_spectrum_rows
                            , elLine = Nothing
                            }
 
@@ -231,12 +236,35 @@ to_gates_only_xml gates = top
                           }
 
 
+mark_dim_compensation :: (Set.Set T.Text) -> GatingDimension -> GatingDimension
+mark_dim_compensation fluorochromes gdim = gdim'
+  where
+    gdim' = case (Set.member (gd_name gdim) fluorochromes) of
+              False -> gdim
+              True -> gdim { gd_compensation_ref = Just . T.pack $ default_compensation }
+
+
+mark_compensation :: (Set.Set T.Text) -> Gate -> Gate
+mark_compensation fluorochromes (RectangleGate aId pId x_dim y_dim) = RectangleGate aId pId x_dim' y_dim'
+  where
+    x_dim' = mark_dim_compensation fluorochromes x_dim
+    y_dim' = mark_dim_compensation fluorochromes y_dim
+
+mark_compensation fluorochromes (PolygonGate aId pId x_dim y_dim points) = PolygonGate aId pId x_dim' y_dim' points
+  where
+    x_dim' = mark_dim_compensation fluorochromes x_dim
+    y_dim' = mark_dim_compensation fluorochromes y_dim
+
+
+
 to_xml :: Compensation -> [Gate] -> Element
 to_xml compensation gates = top
   where
+    fluorochromes = Set.fromList . c_fluorochromes $ compensation
+    gates' = map (mark_compensation fluorochromes) gates
     top = Element { elName = unqual "gating:Gating-ML"
                           , elAttribs = [ xsi, gating, transforms, datatype, schema_location]
-                          , elContent = [Elem . to_spectrum_matrix_element $ compensation] ++  map (Elem . to_gate_element)  gates
+                          , elContent = [Elem . to_spectrum_matrix_element $ compensation] ++  map (Elem . to_gate_element)  gates'
                           , elLine = Nothing
                           }
 

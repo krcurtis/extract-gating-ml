@@ -47,7 +47,7 @@ data GatingDimension = GatingDimension
 
 -- to represent the already-inverted spillover or cross-talk matrix 
 data Compensation = Compensation
-                    { c_fluorchromes :: [T.Text]
+                    { c_fluorochromes :: [T.Text]
                     , c_spectrum_rows :: [[Double]]
                     }
   deriving (Show, Eq, Generic, NFData)
