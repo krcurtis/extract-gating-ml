@@ -9,102 +9,224 @@ import Test.Hspec
 
 import ParseDiva
 
-{-
 
-
-          <compensation>
-            <compensation_coefficient>1.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-          </compensation>
-
-
-        <parameter name="FITC-A" type="30">
-          <is_log>true</is_log>
-          <is_quantitated>false</is_quantitated>
-          <min>0.0</min>
-          <max>5.4185380935668945</max>
-          <raw_index>3</raw_index>
-          <linear_index>3</linear_index>
-          <log_index>21</log_index>
-          <final_index>21</final_index>
-          <fl>FITC</fl>
-          <voltage>495</voltage>
-          <target>3</target>
-          <brightness>1.0</brightness>
-          <threshold>5000</threshold>
-          <trigger>false</trigger>
-          <labels_only>false</labels_only>
-          <biexp_scale>-1</biexp_scale>
-          <comp_biexp_scale>-1</comp_biexp_scale>
-          <manual_biexp_scale>0</manual_biexp_scale>
-          <can_be_compensated>true</can_be_compensated>
-          <compensation>
-            <compensation_coefficient>1.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-            <compensation_coefficient>0.0</compensation_coefficient>
-          </compensation>
-        </parameter>
-
-
-      <instrument_settings name="Cytometer Settings" template="false">
-      </instrument_settings>
-
-
-          <gate fullname="All Events\P1" type="SnapTo_Classifier">
-            <name>P1</name>
-            <color>0xff0000</color>
-            <visible>true</visible>
-            <enabled>true</enabled>
-            <num_events>0</num_events>
-            <parent>All Events</parent>
-            <extended>
-              <is_snap_mode>N</is_snap_mode>
-              <point X="142318.0" Y="150421.0"/>
-              <seed X="142318.0" Y="150421.0"/>
-              <peak X="142318.0" Y="150421.0"/>
-              <inspector_properties>
-                <roaming auto_roaming_enabled="true" roaming_distance="18"/>
-                <smoothing default_sigma_enabled="true" default_sigma="2.5" user_sigma="2.5"/>
-              </inspector_properties>
-            </extended>
-            <region name="P1" xparm="FSC-A" yparm="SSC-A" type="POLYGON_REGION">
-              <points>
-                <point x="233540.07912776744" y="69198.420590873"/>
-                <point x="233540.07912776744" y="17634.46274828058"/>
-                <point x="247270.00599775926" y="-5999.017929574067"/>
-                <point x="279722.56041773997" y="-5999.017929574067"/>
-                <point x="293452.48728773184" y="19782.960991722182"/>
-                <point x="293452.4872877318" y="73495.41707775582"/>
-                <point x="279722.56041773997" y="97128.89775561061"/>
-                <point x="249766.35633775784" y="97128.89775561061"/>
-              </points>
-            </region>
-            <is_x_parameter_scaled>false</is_x_parameter_scaled>
-            <is_y_parameter_scaled>false</is_y_parameter_scaled>
-            <is_x_parameter_log>false</is_x_parameter_log>
-            <is_y_parameter_log>false</is_y_parameter_log>
-            <x_parameter_scale_value>-1</x_parameter_scale_value>
-            <y_parameter_scale_value>-1</y_parameter_scale_value>
-            <input>All Events</input>
-          </gate>
-
-
-        <gates>
-        </gates>
-
-
--}
+trivial_diva_contents = unlines [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                                , "<bdfacs version=\"Version 9.1.4\" release_version=\"Version 9.1.4\">"
+                                , "<experiment name=\"220520_S6D02_MP\">"
+                                , "<acquisition_worksheets name=\"Global Worksheets\">"
+                                , "<worksheet_template name=\"Global Sheet1\">"
+                                , "<instrument_settings name=\"Cytometer Settings\" template=\"false\">"
+                                , "<threshold_op>2</threshold_op>"
+                                , "<flow_rate>0</flow_rate>"
+                                , "<auto_compensation>false</auto_compensation>"
+                                , "<compensation_enabled>true</compensation_enabled>"
+                                , "<use_auto_biexp_scale>false</use_auto_biexp_scale>"
+                                , "<parameter name=\"FSC-A\" type=\"30\">"
+                                , "<is_log>false</is_log>"
+                                , "<is_quantitated>false</is_quantitated>"
+                                , "<min>0.0</min>"
+                                , "<max>262143.0</max>"
+                                , "<raw_index>1</raw_index>"
+                                , "<linear_index>1</linear_index>"
+                                , "<log_index>46</log_index>"
+                                , "<final_index>1</final_index>"
+                                , "<fl>FSC</fl>"
+                                , "<voltage>340</voltage>"
+                                , "<target>3</target>"
+                                , "<brightness>1.0</brightness>"
+                                , "<threshold>25000</threshold>"
+                                , "<trigger>true</trigger>"
+                                , "<labels_only>false</labels_only>"
+                                , "<biexp_scale>-1</biexp_scale>"
+                                , "<comp_biexp_scale>-1</comp_biexp_scale>"
+                                , "<manual_biexp_scale>-1</manual_biexp_scale>"
+                                , "<can_be_compensated>false</can_be_compensated>"
+                                , "</parameter>"
+                                , "<parameter name=\"FSC-H\" type=\"10\">"
+                                , "<is_log>false</is_log>"
+                                , "<is_quantitated>false</is_quantitated>"
+                                , "<min>0.0</min>"
+                                , "<max>262143.0</max>"
+                                , "<raw_index>2</raw_index>"
+                                , "<linear_index>2</linear_index>"
+                                , "<log_index>47</log_index>"
+                                , "<final_index>2</final_index>"
+                                , "<fl>FSC</fl>"
+                                , "<voltage>340</voltage>"
+                                , "<target>3</target>"
+                                , "<brightness>1.0</brightness>"
+                                , "<threshold>25000</threshold>"
+                                , "<trigger>true</trigger>"
+                                , "<labels_only>false</labels_only>"
+                                , "<biexp_scale>-1</biexp_scale>"
+                                , "<comp_biexp_scale>-1</comp_biexp_scale>"
+                                , "<manual_biexp_scale>-1</manual_biexp_scale>"
+                                , "<can_be_compensated>false</can_be_compensated>"
+                                , "</parameter>"
+                                , "<parameter name=\"SSC-A\" type=\"30\">"
+                                , "<is_log>true</is_log>"
+                                , "<is_quantitated>false</is_quantitated>"
+                                , "<min>0.0</min>"
+                                , "<max>5.4185380935668945</max>"
+                                , "<raw_index>3</raw_index>"
+                                , "<linear_index>3</linear_index>"
+                                , "<log_index>48</log_index>"
+                                , "<final_index>48</final_index>"
+                                , "<fl>SSC</fl>"
+                                , "<voltage>130</voltage>"
+                                , "<target>3</target>"
+                                , "<brightness>1.0</brightness>"
+                                , "<threshold>5000</threshold>"
+                                , "<trigger>false</trigger>"
+                                , "<labels_only>false</labels_only>"
+                                , "<biexp_scale>-1</biexp_scale>"
+                                , "<comp_biexp_scale>-1</comp_biexp_scale>"
+                                , "<manual_biexp_scale>-1</manual_biexp_scale>"
+                                , "<can_be_compensated>false</can_be_compensated>"
+                                , "</parameter>"
+                                , "<parameter name=\"B515-A\" type=\"30\">"
+                                , "<is_log>true</is_log>"
+                                , "<is_quantitated>false</is_quantitated>"
+                                , "<min>0.0</min>"
+                                , "<max>5.4185380935668945</max>"
+                                , "<raw_index>4</raw_index>"
+                                , "<linear_index>25</linear_index>"
+                                , "<log_index>49</log_index>"
+                                , "<final_index>49</final_index>"
+                                , "<fl>B515</fl>"
+                                , "<voltage>434</voltage>"
+                                , "<target>3</target>"
+                                , "<brightness>1.0</brightness>"
+                                , "<threshold>5000</threshold>"
+                                , "<trigger>false</trigger>"
+                                , "<labels_only>false</labels_only>"
+                                , "<biexp_scale>-1</biexp_scale>"
+                                , "<comp_biexp_scale>-1</comp_biexp_scale>"
+                                , "<manual_biexp_scale>-1</manual_biexp_scale>"
+                                , "<can_be_compensated>true</can_be_compensated>"
+                                , "<compensation>"
+                                , "<compensation_coefficient>1.0026185188635166</compensation_coefficient>"
+                                , "<compensation_coefficient>-0.004422285267754591</compensation_coefficient>"
+                                , "</compensation>"
+                                , "</parameter>"
+                                , "<parameter name=\"B700-A\" type=\"30\">"
+                                , "<is_log>true</is_log>"
+                                , "<is_quantitated>false</is_quantitated>"
+                                , "<min>0.0</min>"
+                                , "<max>5.4185380935668945</max>"
+                                , "<raw_index>5</raw_index>"
+                                , "<linear_index>26</linear_index>"
+                                , "<log_index>50</log_index>"
+                                , "<final_index>50</final_index>"
+                                , "<fl>B700</fl>"
+                                , "<voltage>445</voltage>"
+                                , "<target>3</target>"
+                                , "<brightness>1.0</brightness>"
+                                , "<threshold>5000</threshold>"
+                                , "<trigger>false</trigger>"
+                                , "<labels_only>false</labels_only>"
+                                , "<biexp_scale>-1</biexp_scale>"
+                                , "<comp_biexp_scale>-1</comp_biexp_scale>"
+                                , "<manual_biexp_scale>-1</manual_biexp_scale>"
+                                , "<can_be_compensated>true</can_be_compensated>"
+                                , "<compensation>"
+                                , "<compensation_coefficient>-0.00968710534452788</compensation_coefficient>"
+                                , "<compensation_coefficient>1.0578945105871003</compensation_coefficient>"
+                                , "</compensation>"
+                                , "</parameter>"
+                                , "</instrument_settings>"
+                                , "<gates>"
+                                , "<gate fullname=\"All Events\" type=\"EventSource_Classifier\">"
+                                , "<name>All Events</name>"
+                                , "<color>0xffffff</color>"
+                                , "<visible>true</visible>"
+                                , "<dotsize>0</dotsize>"
+                                , "<enabled>false</enabled>"
+                                , "<num_events>0</num_events>"
+                                , "</gate>"
+                                , "<gate fullname=\"All Events\P1\" type=\"Region_Classifier\">"
+                                , "<name>P1</name>"
+                                , "<color>0xff0000</color>"
+                                , "<visible>true</visible>"
+                                , "<dotsize>0</dotsize>"
+                                , "<enabled>true</enabled>"
+                                , "<num_events>0</num_events>"
+                                , "<parent>All Events</parent>"
+                                , "<region name=\"\" xparm=\"FSC-A\" yparm=\"SSC-A\" type=\"POLYGON_REGION\">"
+                                , "<points>"
+                                , "<point x=\"41049.513448010985\" y=\"2.746782463925485\"/>"
+                                , "<point x=\"30787.790443488288\" y=\"2.46052293217819\"/>"
+                                , "<point x=\"36385.093900500666\" y=\"2.231515306780355\"/>"
+                                , "<point x=\"55042.772090541934\" y=\"2.155179431647745\"/>"
+                                , "<point x=\"87693.70892311416\" y=\"2.231515306780355\"/>"
+                                , "<point x=\"104485.6192941513\" y=\"2.365103088262426\"/>"
+                                , "<point x=\"107284.27102265751\" y=\"2.746782463925485\"/>"
+                                , "<point x=\"94223.8962896286\" y=\"2.97579008932332\"/>"
+                                , "<point x=\"79297.75373759559\" y=\"3.0330419956727774\"/>"
+                                , "<point x=\"62505.843366558445\" y=\"2.994874058106471\"/>"
+                                , "</points>"
+                                , "</region>"
+                                , "<is_x_parameter_scaled>false</is_x_parameter_scaled>"
+                                , "<is_y_parameter_scaled>false</is_y_parameter_scaled>"
+                                , "<is_x_parameter_log>false</is_x_parameter_log>"
+                                , "<is_y_parameter_log>true</is_y_parameter_log>"
+                                , "<x_parameter_scale_value>0</x_parameter_scale_value>"
+                                , "<y_parameter_scale_value>0</y_parameter_scale_value>"
+                                , "<input>All Events</input>"
+                                , "</gate>"
+                                , "<gate fullname=\"All Events\P1\P2\" type=\"Region_Classifier\">"
+                                , "<name>P2</name>"
+                                , "<color>0x00ff00</color>"
+                                , "<visible>true</visible>"
+                                , "<dotsize>0</dotsize>"
+                                , "<enabled>true</enabled>"
+                                , "<num_events>0</num_events>"
+                                , "<parent>All Events\P1</parent>"
+                                , "<region name=\"\" xparm=\"FSC-A\" yparm=\"FSC-H\" type=\"POLYGON_REGION\">"
+                                , "<points>"
+                                , "<point x=\"182847.86769232462\" y=\"164090.49198523734\"/>"
+                                , "<point x=\"16794.53180095734\" y=\"32019.766904128424\"/>"
+                                , "<point x=\"25190.48698647591\" y=\"13009.58677881729\"/>"
+                                , "<point x=\"198706.89415385976\" y=\"139077.09708351217\"/>"
+                                , "</points>"
+                                , "</region>"
+                                , "<is_x_parameter_scaled>false</is_x_parameter_scaled>"
+                                , "<is_y_parameter_scaled>false</is_y_parameter_scaled>"
+                                , "<is_x_parameter_log>false</is_x_parameter_log>"
+                                , "<is_y_parameter_log>false</is_y_parameter_log>"
+                                , "<x_parameter_scale_value>0</x_parameter_scale_value>"
+                                , "<y_parameter_scale_value>0</y_parameter_scale_value>"
+                                , "<input>All Events\P1</input>"
+                                , "</gate>"
+                                , "<gate fullname=\"All Events\P1\P2\P3\" type=\"Region_Classifier\">"
+                                , "<name>P3</name>"
+                                , "<color>0x0000ff</color>"
+                                , "<visible>true</visible>"
+                                , "<dotsize>0</dotsize>"
+                                , "<enabled>true</enabled>"
+                                , "<num_events>0</num_events>"
+                                , "<parent>All Events\P1\P2</parent>"
+                                , "<region name=\"\" xparm=\"B515-A\" yparm=\"B700-A\" type=\"RECTANGLE_REGION\">"
+                                , "<points>"
+                                , "<point x=\"0.31177671036262106\" y=\"2.021591650165674\"/>"
+                                , "<point x=\"2.4114207633873734\" y=\"2.021591650165674\"/>"
+                                , "<point x=\"2.4114207633873734\" y=\"-0.2494006350295228\"/>"
+                                , "<point x=\"0.31177671036262106\" y=\"-0.2494006350295228\"/>"
+                                , "</points>"
+                                , "</region>"
+                                , "<is_x_parameter_scaled>false</is_x_parameter_scaled>"
+                                , "<is_y_parameter_scaled>false</is_y_parameter_scaled>"
+                                , "<is_x_parameter_log>true</is_x_parameter_log>"
+                                , "<is_y_parameter_log>true</is_y_parameter_log>"
+                                , "<x_parameter_scale_value>231204</x_parameter_scale_value>"
+                                , "<y_parameter_scale_value>125538</y_parameter_scale_value>"
+                                , "<input>All Events\P1\P2</input>"
+                                , "</gate>"
+                                , "</worksheet_template>"
+                                , "</acquisition_worksheets>"
+                                , "</experiment>"
+                                , "</bdfacs>"
+                                ]
 
 
 
@@ -113,4 +235,3 @@ spec = describe "Parse DIVA XML components" $ do
   it "parse compensation entry" $ do
     --parse known_marker "" "CD4" `shouldParse` "CD4"
     False `shouldBe` True
-

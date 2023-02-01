@@ -37,6 +37,17 @@ fth4 (_,_,_,d) = d
 
 --------------------------------------------------------------------------------
 
+display_column2_table :: (String, String) -> [(String, String)] -> IO ()
+display_column2_table (label1, label2) rows = do
+    let vals1 = map fst rows
+        vals2 = map snd rows
+        n = length rows
+        column1 = stylized_column Box.left label1 vals1
+        column2 = stylized_column Box.right label2 vals2
+        sep = stylized_separator n
+        table =  column1  <> sep <> column2
+    Box.printBox table
+
 display_column3_table :: (String, String, String) -> [(String, String, String)] -> IO ()
 display_column3_table (label1, label2, label3) rows = do
     let vals1 = map fst3 rows

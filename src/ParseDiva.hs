@@ -47,23 +47,22 @@ bdfacs
           compensation -- What to do with compensation?
       gates
 
-Gates can also be linked to
+Gates can also be linked to multiple nodes under
   acquisition_worksheets name="Global Worksheets"
+  /bdfacs/experiment/acquisition_worksheets/worksheet_template
 
 
 TODO link fcs filenames for tubes
   <tube name="FITC Stained Control">
   <data_filename>124483.fcs</data_filename>
 
-TODO Or look for      <acquisition_worksheets name="Global Worksheets">
-  /bdfacs/experiment/acquisition_worksheets/worksheet_template
 
 GATES TODO
   "AND_Classifier", "OR_Classifier", "NOT_Classifier")
 
 there are things about biexp_scale in the instrument settings section, relevant?
 
-Under experiment, theris is a "log_decades" text field, relevant?
+Under experiment, there is is a "log_decades" text field, relevant?
 
 -}
 
@@ -101,23 +100,28 @@ type DivaGateSet = [DivaGate]
 
 
 
-data DivaInfo = DivaInfo { di_specimens :: [String]  -- named specimens, there might be specimen sections without names, which are not included
-                         , di_specimen_tubes :: Map.Map String [DivaTube]
-                         -- what about tube name to DivaTube, this might make sense if tube names don't overlap ...
-                         , di_has_overlap :: Bool  -- some tube names overlap
-                         , di_overlapping_tube_names :: [String]  --list of tube names that occur in more than one specimen
-                         , di_tube_names :: [String] -- unique listing of the tube names
-                         , di_global_worksheet_compensation_info :: [ (String, [Double])]
-                         , di_global_worksheet_gates :: [DivaGate]
-                         }
-                deriving (Show, Generic, NFData)
-
 data DivaTube = DivaTube { dt_tube_name :: String
                          , dt_gates :: [DivaGate]
                          , dt_has_compensation :: Bool
                          , dt_compensation_info :: [ (String, [Double])]
                          }
                 deriving (Show, Generic, NFData)
+
+data DivaWorksheet = DivaWorksheet { dw_sheet_name :: String
+                                   , dw_gates :: [DivaGate]
+                                   , dw_compensation_info :: [ (String, [Double])]
+                                   }
+  deriving (Show, Generic, NFData)
+
+data DivaInfo = DivaInfo { di_specimens :: [String]  -- named specimens, there might be specimen sections without names, which are not included
+                         , di_specimen_tubes :: Map.Map String [DivaTube]
+                         -- what about tube name to DivaTube, this might make sense if tube names don't overlap ...
+                         , di_has_overlap :: Bool  -- some tube names overlap
+                         , di_overlapping_tube_names :: [String]  --list of tube names that occur in more than one specimen
+                         , di_tube_names :: [String] -- unique listing of the tube names
+                         , di_global_worksheets :: [DivaWorksheet]
+                         }
+  deriving (Show, Generic, NFData)
 
 
 --------------------------------------------------------------------------------
@@ -269,14 +273,7 @@ parse_point p = do
 
 
 find_global_acquistion_node :: Element -> Maybe Element
-find_global_acquistion_node root = do
-  acquistion_node  <- findElement (simple_name "acquisition_worksheets") root
-  -- todo check has name "Global Worksheets"
-  template_node <- findElement (simple_name "worksheet_template") acquistion_node
-  sheet_name <- findAttr (simple_name "name") template_node
-  case sheet_name of
-    "Global Sheet1" -> return template_node
-    _ -> Nothing
+find_global_acquistion_node root = findElement (simple_name "acquisition_worksheets") root
 
 
 -- assumes given a parameter node
@@ -321,7 +318,32 @@ find_duplicates so_far dups [] = dups
 find_duplicates so_far dups (x:xs) | Set.member x so_far = find_duplicates so_far (Set.insert x dups) xs
 find_duplicates so_far dups (x:xs) | otherwise = find_duplicates (Set.insert x so_far) dups xs
 
+parse_worksheet :: Element -> DivaWorksheet
+parse_worksheet worksheet_node = DivaWorksheet{..}
+  where
+    dw_sheet_name = case (findAttr (simple_name "name") worksheet_node) of
+                     Nothing -> error "ERROR no name attribute in worksheet"
+                     Just x -> x
+    dw_gates = collect_gate_set worksheet_node
+    dw_compensation_info = fromMaybe [] . compensation_info $ worksheet_node
+    dw_has_compensation = length (dw_compensation_info) > 0                                                    
+    dw_gate_info = collect_from_gates_element worksheet_node
     
+
+collect_worksheets :: Element -> [DivaWorksheet]
+collect_worksheets root = results
+  where
+    -- todo check has name "Global Worksheets"
+    results = case find_global_acquistion_node root of
+                Nothing -> []
+                Just acquisition_node -> let template_nodes = findElements (simple_name "worksheet_template") acquisition_node
+                                             worksheets = map parse_worksheet template_nodes
+                                         in
+                                           worksheets
+
+
+
+
 
 load_diva_info :: String -> IO DivaInfo
 load_diva_info filename = do
@@ -334,10 +356,8 @@ load_diva_info filename = do
         di_overlapping_tube_names = Set.toList $ find_duplicates Set.empty Set.empty all_tubes
         di_has_overlap = length di_overlapping_tube_names > 0
         di_tube_names = Set.toList . Set.fromList $ all_tubes
-        global_acquisition_node = find_global_acquistion_node root
-        (di_global_worksheet_compensation_info, di_global_worksheet_gates) = case global_acquisition_node of
-                                                                               Nothing -> ([], [])
-                                                                               Just acq -> (fromMaybe [] . compensation_info $ acq, collect_from_gates_element acq)
+        di_global_worksheets = collect_worksheets root
+
         
     return DivaInfo{..}
 

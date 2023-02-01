@@ -15,6 +15,7 @@ import System.Console.Docopt
 import Control.DeepSeq
 import Data.Maybe (isNothing, fromJust)
 import qualified Data.Map as Map
+import Data.List (find)
 
 --------------------------------------------------------------------------------
 
@@ -69,11 +70,18 @@ patterns = [docoptFile|USAGE.txt|]
 
 getArgOrExit = getArgOrExitWith patterns
 
+
+find_worksheet :: DivaInfo -> String -> Maybe DivaWorksheet
+find_worksheet diva_info sheet_name = find (\w -> sheet_name == dw_sheet_name w) (di_global_worksheets diva_info)
+    
+
+
 main = do
   args <- parseArgsOrExit patterns =<< getArgs
   --print . show $ args
   --putStrLn ""
 
+  let default_sheet_name = "Global Sheet1"
 
   when (args `isPresent` (command "summary")) $ do
     diva_file <- args `getArgOrExit` (argument "diva_xml")
@@ -91,7 +99,10 @@ main = do
   when (args `isPresent` (command "summary-global-gates")) $ do
     diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
-    show_hierarchy (di_global_worksheet_gates diva_info)
+    case (find_worksheet diva_info default_sheet_name) of
+      Nothing -> error $ "ERROR sheet " <> default_sheet_name <> " is not in DIVA XML"
+      Just w -> show_hierarchy (dw_gates w)
+        
 
 
   when (args `isPresent` (command "summary-tube-gates")) $ do
@@ -111,7 +122,10 @@ main = do
     diva_info <- load_diva_info diva_file
 
     putStrLn "Gates from Global Worksheet:"
-    show_hierarchy (di_global_worksheet_gates diva_info)
+    forM_ (di_global_worksheets diva_info) (\sheet -> do
+                                               putStrLn $ "Global Worksheet: " <> (dw_sheet_name sheet)
+                                               show_hierarchy (dw_gates sheet)
+                                               putStrLn "")
     putStrLn ""
 
     let per_specimen_tube_gates = [ (s, dt_tube_name t, dt_gates t) | (s, tubes) <- Map.toList . di_specimen_tubes $ diva_info, t <- tubes ]   
@@ -123,7 +137,9 @@ main = do
   when (args `isPresent` (command "compare-vs-global")) $ do
     diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
-    show_comparison_with_global_worksheet diva_info
+    case (find_worksheet diva_info default_sheet_name) of
+      Nothing -> error $ "ERROR sheet " <> default_sheet_name <> " is not in DIVA XML"
+      Just w -> show_comparison_with_global_worksheet w diva_info
 
 
   when (args `isPresent` (command "extract-global")) $ do
@@ -131,12 +147,13 @@ main = do
     output_file <- args `getArgOrExit` (longOption "output_file")
     diva_info <- load_diva_info diva_file
 
-    let gates = map convert_diva_gate (di_global_worksheet_gates diva_info)
-        comp_matrix = convert_diva_compensation (di_global_worksheet_compensation_info diva_info)    
-        xml_root = gates `deepseq` to_xml comp_matrix gates
-
-        
-    xml_to_file output_file xml_root
+    case (find_worksheet diva_info default_sheet_name) of
+      Nothing -> error $ "ERROR sheet " <> default_sheet_name <> " is not in DIVA XML"
+      Just w ->  let gates = map convert_diva_gate (dw_gates w)
+                     comp_matrix = convert_diva_compensation (dw_compensation_info w)
+                     xml_root = gates `deepseq` to_xml comp_matrix gates
+                 in
+                   xml_to_file output_file xml_root
 
 
   when (args `isPresent` (command "extract-tube")) $ do
