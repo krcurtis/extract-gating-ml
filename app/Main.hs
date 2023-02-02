@@ -81,7 +81,7 @@ main = do
   --print . show $ args
   --putStrLn ""
 
-  let default_sheet_name = "Global Sheet1"
+  --let default_sheet_name = "Global Sheet1"
 
   when (args `isPresent` (command "summary")) $ do
     diva_file <- args `getArgOrExit` (argument "diva_xml")
@@ -99,8 +99,10 @@ main = do
   when (args `isPresent` (command "summary-global-gates")) $ do
     diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
-    case (find_worksheet diva_info default_sheet_name) of
-      Nothing -> error $ "ERROR sheet " <> default_sheet_name <> " is not in DIVA XML"
+    worksheet_name <- args `getArgOrExit` (longOption "worksheet")
+    
+    case (find_worksheet diva_info worksheet_name) of
+      Nothing -> error $ "ERROR sheet " <> worksheet_name <> " is not in DIVA XML"
       Just w -> show_hierarchy (dw_gates w)
         
 
@@ -137,18 +139,30 @@ main = do
   when (args `isPresent` (command "compare-vs-global")) $ do
     diva_file <- args `getArgOrExit` (argument "diva_xml")
     diva_info <- load_diva_info diva_file
-    case (find_worksheet diva_info default_sheet_name) of
-      Nothing -> error $ "ERROR sheet " <> default_sheet_name <> " is not in DIVA XML"
+    worksheet_name <- args `getArgOrExit` (longOption "worksheet")    
+    case (find_worksheet diva_info worksheet_name) of
+      Nothing -> error $ "ERROR sheet " <> worksheet_name <> " is not in DIVA XML"
       Just w -> show_comparison_with_global_worksheet w diva_info
+
+  when (args `isPresent` (command "compare-sheets")) $ do
+    diva_file <- args `getArgOrExit` (argument "diva_xml")
+    diva_info <- load_diva_info diva_file
+    worksheet_name <- args `getArgOrExit` (longOption "worksheet")    
+    case (find_worksheet diva_info worksheet_name) of
+      Nothing -> error $ "ERROR sheet " <> worksheet_name <> " is not in DIVA XML"
+      Just w -> do
+        putStrLn $ "Comparison of global worksheets with \"" <> worksheet_name <> "\""
+        show_worksheet_comparisons w diva_info
 
 
   when (args `isPresent` (command "extract-global")) $ do
     diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
     output_file <- args `getArgOrExit` (longOption "output_file")
     diva_info <- load_diva_info diva_file
-
-    case (find_worksheet diva_info default_sheet_name) of
-      Nothing -> error $ "ERROR sheet " <> default_sheet_name <> " is not in DIVA XML"
+    worksheet_name <- args `getArgOrExit` (longOption "worksheet")
+    
+    case (find_worksheet diva_info worksheet_name) of
+      Nothing -> error $ "ERROR sheet " <> worksheet_name <> " is not in DIVA XML"
       Just w ->  let gates = map convert_diva_gate (dw_gates w)
                      comp_matrix = convert_diva_compensation (dw_compensation_info w)
                      xml_root = gates `deepseq` to_xml comp_matrix gates

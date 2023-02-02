@@ -137,6 +137,15 @@ show_comparison_with_global_worksheet DivaWorksheet{..} DivaInfo{..} = do
   display_many_column_table ["Specimen", "Tube", "compensation", "n_gate_matches", "n_gate_mismatches", "n_gate_missing", "n_gate_extra"] rows
 
 
+show_worksheet_comparisons :: DivaWorksheet -> DivaInfo -> IO ()
+show_worksheet_comparisons ref_sheet DivaInfo{..} = do
+  let ref_gates = dw_gates ref_sheet
+      ref_comp = dw_compensation_info ref_sheet
+      comp_gates = [ (dw_sheet_name w, dw_compensation_info w, dw_gates w) | w <- di_global_worksheets]
+      compare_them (sheet_name, comp, gates) = [sheet_name] ++ summarize_gate_compensation_comparison ref_gates ref_comp gates comp
+      rows = map compare_them comp_gates
+  display_many_column_table ["Worksheet", "compensation", "n_gate_matches", "n_gate_mismatches", "n_gate_missing", "n_gate_extra"] rows
+  
 {-
 show_gates_with_same_name :: DivaInfo -> String -> IO ()
 -}

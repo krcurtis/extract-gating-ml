@@ -1,12 +1,13 @@
 Usage:
-  extract-gating-ml extract-global -i=<diva_xml>  -o=<gatingml_output_file> 
+  extract-gating-ml extract-global [-w=<sheet>] -i=<diva_xml>  -o=<gatingml_output_file> 
   extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<diva_xml> -o=<gatingml_output_file>
   extract-gating-ml summary <diva_xml>
   extract-gating-ml summary-comp-channels <diva_xml>
-  extract-gating-ml summary-global-gates <diva_xml>
+  extract-gating-ml summary-global-gates [-w=<sheet>] <diva_xml>
   extract-gating-ml summary-tube-gates  -s=<slabel> -t=<tlabel> <diva_xml>
   extract-gating-ml summary-all-gates <diva_xml>
-  extract-gating-ml compare-vs-global <diva_xml>
+  extract-gating-ml compare-vs-global [-w=<sheet>] <diva_xml>
+  extract-gating-ml compare-sheets [-w=<sheet>] <diva_xml>
 
 Options:
   -h --help                 show this help text
@@ -14,6 +15,7 @@ Options:
   -o --output_file FILE     output GatingML 2.0 file
   -s --specimen LABEL       specimen label in DIVA XML
   -t --tube LABEL           tube label in DIVA XML
+  -w --worksheet SHEET      global worksheet to use [default: Global Sheet1]
 
 Examples:
   extract-gating-ml extract-global --input_diva_xml diva.xml --output_file gates.gatingml # Extract GatingML gates from DIVA XML global worksheet
@@ -28,4 +30,5 @@ Commands:
   summary-tube-gates     For a specific specimen and tube combination, show the gate hierarchy and some short information about the gates
   summary-all-gates      For the global worksheet and all specimen/tube combinations, show the gate hierarchy and some short information about the gates
   compare-vs-global      Compare gates and compensation matrix for the specimen/tube combinations versus the global worksheet
+  compare-sheets         Compare gates and compensation matrix for the global worksheets versus the first sheet
 
