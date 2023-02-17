@@ -3,7 +3,7 @@
 module ParseDivaXMLSpec where
 
 import Test.Hspec
-
+import Text.XML.Light
 
 --------------------------------------------------------------------------------
 
@@ -144,7 +144,7 @@ trivial_diva_contents = unlines [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                                 , "<enabled>false</enabled>"
                                 , "<num_events>0</num_events>"
                                 , "</gate>"
-                                , "<gate fullname=\"All Events\P1\" type=\"Region_Classifier\">"
+                                , "<gate fullname=\"All Events\\P1\" type=\"Region_Classifier\">"
                                 , "<name>P1</name>"
                                 , "<color>0xff0000</color>"
                                 , "<visible>true</visible>"
@@ -174,14 +174,14 @@ trivial_diva_contents = unlines [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                                 , "<y_parameter_scale_value>0</y_parameter_scale_value>"
                                 , "<input>All Events</input>"
                                 , "</gate>"
-                                , "<gate fullname=\"All Events\P1\P2\" type=\"Region_Classifier\">"
+                                , "<gate fullname=\"All Events\\P1\\P2\" type=\"Region_Classifier\">"
                                 , "<name>P2</name>"
                                 , "<color>0x00ff00</color>"
                                 , "<visible>true</visible>"
                                 , "<dotsize>0</dotsize>"
                                 , "<enabled>true</enabled>"
                                 , "<num_events>0</num_events>"
-                                , "<parent>All Events\P1</parent>"
+                                , "<parent>All Events\\P1</parent>"
                                 , "<region name=\"\" xparm=\"FSC-A\" yparm=\"FSC-H\" type=\"POLYGON_REGION\">"
                                 , "<points>"
                                 , "<point x=\"182847.86769232462\" y=\"164090.49198523734\"/>"
@@ -196,16 +196,16 @@ trivial_diva_contents = unlines [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                                 , "<is_y_parameter_log>false</is_y_parameter_log>"
                                 , "<x_parameter_scale_value>0</x_parameter_scale_value>"
                                 , "<y_parameter_scale_value>0</y_parameter_scale_value>"
-                                , "<input>All Events\P1</input>"
+                                , "<input>All Events\\P1</input>"
                                 , "</gate>"
-                                , "<gate fullname=\"All Events\P1\P2\P3\" type=\"Region_Classifier\">"
+                                , "<gate fullname=\"All Events\\P1\\P2\\P3\" type=\"Region_Classifier\">"
                                 , "<name>P3</name>"
                                 , "<color>0x0000ff</color>"
                                 , "<visible>true</visible>"
                                 , "<dotsize>0</dotsize>"
                                 , "<enabled>true</enabled>"
                                 , "<num_events>0</num_events>"
-                                , "<parent>All Events\P1\P2</parent>"
+                                , "<parent>All Events\\P1\\P2</parent>"
                                 , "<region name=\"\" xparm=\"B515-A\" yparm=\"B700-A\" type=\"RECTANGLE_REGION\">"
                                 , "<points>"
                                 , "<point x=\"0.31177671036262106\" y=\"2.021591650165674\"/>"
@@ -220,7 +220,7 @@ trivial_diva_contents = unlines [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                                 , "<is_y_parameter_log>true</is_y_parameter_log>"
                                 , "<x_parameter_scale_value>231204</x_parameter_scale_value>"
                                 , "<y_parameter_scale_value>125538</y_parameter_scale_value>"
-                                , "<input>All Events\P1\P2</input>"
+                                , "<input>All Events\\P1\\P2</input>"
                                 , "</gate>"
                                 , "</worksheet_template>"
                                 , "</acquisition_worksheets>"
@@ -232,6 +232,22 @@ trivial_diva_contents = unlines [ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 
 spec :: Spec
 spec = describe "Parse DIVA XML components" $ do
-  it "parse compensation entry" $ do
+  let contents = parseXML trivial_diva_contents
+      entries   = concatMap (findElements $ simple_name "bdfacs") (onlyElems contents)
+      root = entries !! 0
+      diva_info = parse_diva_xml root
+      first_worksheet = case length (di_global_worksheets diva_info) of
+                          0 -> DivaWorksheet "Invalid" [] []
+                          _ -> head (di_global_worksheets diva_info)
+
+  it "parse global worksheet count" $ do
     --parse known_marker "" "CD4" `shouldParse` "CD4"
-    False `shouldBe` True
+    length (di_global_worksheets diva_info) `shouldBe` 1
+
+  it "parse global worksheet name" $ do
+    dw_sheet_name first_worksheet `shouldBe` "Global Sheet1"
+
+  it "check number of worksheet gates" $ do
+    length (dw_gates first_worksheet) `shouldBe` 3
+
+  --let [gate1, gate2, gate3] = dw_gates first_worksheet

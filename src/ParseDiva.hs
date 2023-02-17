@@ -152,6 +152,7 @@ load_root_node filename = do
     then return $ entries !! 0
     else error $ "ERROR could not load bdfacs root node from" <> filename
 
+
 {-
 gate_contents :: IO ()
 gate_contents = do
@@ -344,21 +345,24 @@ collect_worksheets root = results
 
 
 
+parse_diva_xml :: Element -> DivaInfo
+parse_diva_xml root = DivaInfo{..}
+  where
+    smap = specimen_mapping root
+    di_specimens = map fst $ Map.toList smap
+    di_specimen_tubes = Map.fromList [ (s, collect_tube_info e) | (s,e) <- Map.toList smap]
+    all_tubes = (map dt_tube_name . concat . map snd . Map.toList ) di_specimen_tubes
+    di_overlapping_tube_names = Set.toList $ find_duplicates Set.empty Set.empty all_tubes
+    di_has_overlap = length di_overlapping_tube_names > 0
+    di_tube_names = Set.toList . Set.fromList $ all_tubes
+    di_global_worksheets = collect_worksheets root
+
 
 load_diva_info :: String -> IO DivaInfo
 load_diva_info filename = do
     root <- load_root_node filename
     --putStrLn "Loaded root node"
-    let smap = specimen_mapping root
-        di_specimens = map fst $ Map.toList smap
-        di_specimen_tubes = Map.fromList [ (s, collect_tube_info e) | (s,e) <- Map.toList smap]
-        all_tubes = (map dt_tube_name . concat . map snd . Map.toList ) di_specimen_tubes
-        di_overlapping_tube_names = Set.toList $ find_duplicates Set.empty Set.empty all_tubes
-        di_has_overlap = length di_overlapping_tube_names > 0
-        di_tube_names = Set.toList . Set.fromList $ all_tubes
-        di_global_worksheets = collect_worksheets root
-
-        
-    return DivaInfo{..}
+    
+    return $ parse_diva_xml root
 
 

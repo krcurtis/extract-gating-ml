@@ -26,10 +26,13 @@ source-repository head
 library
   exposed-modules:
       Diva2GatingML
+      Diva2Intermediate
       GateComparison
       GatingML
       GatingML2XML
+      IntermediateGate
       Lib
+      Logicle
       ParseDiva
       PrettyPrintTable
       QueryDiva
@@ -80,6 +83,7 @@ test-suite extract-gating-ml-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      LogicleSpec
       ParseDivaXMLSpec
       Paths_extract_gating_ml
   hs-source-dirs:
