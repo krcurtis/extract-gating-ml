@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
---- Copyright 2022,2023 Fred Hutchinson Cancer Center
---- Convert Diva Gates to GatingML Gates
+--- Copyright 2023 Fred Hutchinson Cancer Center
+--- Convert Intermediate Gates to GatingML Gates
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -8,43 +8,29 @@
 
 
 
-module Diva2GatingML where
+module Intermediate2GatingML where
 
 
 import qualified Data.Map.Strict as Map
 import qualified Data.List as L
-import qualified Numeric.LinearAlgebra as NLA
 
 import qualified Data.Text as T
 
 --------------------------------------------------------------------------------
 import GatingML
-import ParseDiva
-import DivaTransform
+import IntermediateGate
 
--- or use Either String [Gate] ??
-convert :: DivaInfo -> String -> String -> [Gate]
-convert DivaInfo{..} specimen tube = results
+
+
+convert_collection :: [IntermediateGate] -> T.Text -> [Gate]
+convert_collection intermediate_gates compensation_ref = gates
   where
-    results = case (Map.lookup specimen di_specimen_tubes) of
-                Nothing -> error $ "ERROR specimen " <> specimen <> " not found in Diva info"
-                Just tubes -> case (L.find (\t -> tube == dt_tube_name t) tubes) of
-                                Nothing -> error $ "ERROR tube " <> tube <> " was not found for specimen " <> specimen <> " in Diva info"
-                                Just tube -> extract_gates_from_tube_info tube
+    gates = undefined
 
 
-extract_gates_from_tube_info :: DivaTube -> [Gate]
-extract_gates_from_tube_info DivaTube{..} = map convert_diva_gate dt_gates
-
-
-diva_parent_to_id :: T.Text -> Maybe T.Text
-diva_parent_to_id diva_parent_text = case (L.last . T.splitOn "\\" $ diva_parent_text) of
-                                       "All Events" -> Nothing
-                                       x -> Just x
-
-
-convert_diva_gate :: DivaGate -> Gate
-convert_diva_gate DivaGate{..} | (r_type dg_region) == RectangleRegion = RectangleGate{..}
+convert_intermediate_gate :: IntermediateGate -> (Maybe T.Text) -> (Maybe T.Text) -> T.Text -> Gate
+convert_intermediate_gate BasicRectangleGate{..} x_transform_ref y_transform_ref compensation_ref = undefined -- RectangleGate{..}
+{-
   where
     rg_id = dg_name
     rg_parent_id = diva_parent_to_id dg_parent
@@ -68,8 +54,9 @@ convert_diva_gate DivaGate{..} | (r_type dg_region) == RectangleRegion = Rectang
                                       
     rg_x_dim = GatingDimension Nothing Nothing (Just x_min) (Just x_max) x_fluorescent
     rg_y_dim = GatingDimension Nothing Nothing (Just y_min) (Just y_max) y_fluorescent
-
-convert_diva_gate DivaGate{..} | (r_type dg_region) == PolygonRegion = PolygonGate{..}
+-}
+convert_intermediate_gate BasicPolygonGate{..} x_transform_ref y_transform_ref compensation_ref = undefined -- PolygonGate{..}
+{-
   where
     pg_id = dg_name
     pg_parent_id = diva_parent_to_id dg_parent
@@ -87,37 +74,7 @@ convert_diva_gate DivaGate{..} | (r_type dg_region) == PolygonRegion = PolygonGa
     y_transform = transform_coord dg_y_scaled dg_y_log dg_y_scale
     
     pg_points = zip (map x_transform d_x_points) (map y_transform d_y_points)
-
-convert_diva_gate DivaGate{..} | otherwise = error $ "ERROR region type " <> show (r_type dg_region) <> " not handled"
-
-
-
-
-{-
--- this version assumes the matrix-already-inverted flag can be used
-convert_diva_compensation :: [ (String, [Double])] -> Compensation
-convert_diva_compensation info_rows = Compensation{..}
-  where
-    c_fluorochromes = map (T.pack . fst) info_rows
-    c_spectrum_rows = map snd info_rows
 -}
-
---apply a matrix inverse
-convert_diva_compensation :: [ (String, [Double])] -> Compensation
-convert_diva_compensation info_rows = Compensation{..}
-  where
-    n = length info_rows    
-    c_fluorochromes = map (T.pack . fst) info_rows
-    rows = map snd info_rows    
-
-    m = NLA.matrix n (concat rows)
-    m' = NLA.tr . NLA.inv $ m
-    row_vectors = NLA.toRows m'
-    c_spectrum_rows = map NLA.toList row_vectors
-
-
-
-
 
 
 

@@ -46,7 +46,10 @@ data IntermediateGate = BasicRectangleGate
 
 
 data Transform = Linear
-               | Log
-               | Biexponential
+               | Log { l_T :: Double, l_M :: Double }
+               | Biexponential { b_T :: Double
+                               , b_W :: Double
+                               , b_M :: Double
+                               , b_A :: Double }
   deriving (Show, Eq, Generic, NFData)
                    

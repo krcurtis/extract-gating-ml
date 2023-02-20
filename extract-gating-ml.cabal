@@ -27,9 +27,11 @@ library
   exposed-modules:
       Diva2GatingML
       Diva2Intermediate
+      DivaTransform
       GateComparison
       GatingML
       GatingML2XML
+      Intermediate2GatingML
       IntermediateGate
       Lib
       Logicle
