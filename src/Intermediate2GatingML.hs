@@ -13,6 +13,7 @@ module Intermediate2GatingML where
 
 import qualified Data.Map.Strict as Map
 import qualified Data.List as L
+import qualified Data.Set as Set
 
 import qualified Data.Text as T
 
@@ -25,11 +26,19 @@ import IntermediateGate
 convert_collection :: [IntermediateGate] -> T.Text -> [Gate]
 convert_collection intermediate_gates compensation_ref = gates
   where
-    gates = undefined
+    all_transforms = [ brg_x_transform g | g <- intermediate_gates ] ++ [ brg_y_transform g | g <- intermediate_gates ]
+    log_transforms = L.nub (filter is_log_transform all_transforms)
+    logicle_transforms = L.nub (filter is_logicle_transform all_transforms)  -- want to preserve order
+
+    named_log_transforms = [ (t, T.pack ("Log" ++ show i)) | (t,i) <- zip log_transforms [1..]]
+    named_logicle_transforms = [ (t, T.pack ("Logicle" ++ show i)) | (t,i) <- zip logicle_transforms [1..]]
+    transform_map = Map.fromList $ named_log_transforms ++ named_logicle_transforms
+    gates = map (\g -> convert_intermediate_gate g transform_map compensation_ref) intermediate_gates
 
 
-convert_intermediate_gate :: IntermediateGate -> (Maybe T.Text) -> (Maybe T.Text) -> T.Text -> Gate
-convert_intermediate_gate BasicRectangleGate{..} x_transform_ref y_transform_ref compensation_ref = undefined -- RectangleGate{..}
+
+convert_intermediate_gate :: IntermediateGate -> (Map.Map Transform T.Text) -> T.Text -> Gate
+convert_intermediate_gate BasicRectangleGate{..} transform_map compensation_ref = undefined -- RectangleGate{..}
 {-
   where
     rg_id = dg_name
@@ -55,7 +64,7 @@ convert_intermediate_gate BasicRectangleGate{..} x_transform_ref y_transform_ref
     rg_x_dim = GatingDimension Nothing Nothing (Just x_min) (Just x_max) x_fluorescent
     rg_y_dim = GatingDimension Nothing Nothing (Just y_min) (Just y_max) y_fluorescent
 -}
-convert_intermediate_gate BasicPolygonGate{..} x_transform_ref y_transform_ref compensation_ref = undefined -- PolygonGate{..}
+convert_intermediate_gate BasicPolygonGate{..} transform_map compensation_ref = undefined -- PolygonGate{..}
 {-
   where
     pg_id = dg_name

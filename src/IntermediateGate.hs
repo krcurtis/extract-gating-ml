@@ -51,5 +51,17 @@ data Transform = Linear
                                , b_W :: Double
                                , b_M :: Double
                                , b_A :: Double }
-  deriving (Show, Eq, Generic, NFData)
+  deriving (Show, Eq, Ord, Generic, NFData)
                    
+
+
+is_log_transform :: Transform -> Bool
+is_log_transform Linear = False
+is_log_transform (Log _ _) = True
+is_log_transform (Biexponential _ _ _ _) = False
+
+is_logicle_transform :: Transform -> Bool
+is_logicle_transform Linear = False
+is_logicle_transform (Log _ _) = False
+is_logicle_transform (Biexponential _ _ _ _) = True
+

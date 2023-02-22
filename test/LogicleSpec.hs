@@ -1,3 +1,5 @@
+--------------------------------------------------------------------------------
+--- Copyright 2023 Fred Hutchinson Cancer Center
 
 
 module LogicleSpec where

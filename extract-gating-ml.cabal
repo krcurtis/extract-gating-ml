@@ -85,6 +85,7 @@ test-suite extract-gating-ml-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      GateConversionSpec
       LogicleSpec
       ParseDivaXMLSpec
       Paths_extract_gating_ml
