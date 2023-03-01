@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 --- Copyright 2022 Keith Curtis
---- Copyright 2022 Fred Hutchinson Cancer Center
+--- Copyright 2022,2023 Fred Hutchinson Cancer Center
 --- Generate XML for GatingML structures
 
 {-# LANGUAGE RecordWildCards #-}
@@ -43,7 +43,7 @@ import qualified Data.Set as Set
 --------------------------------------------------------------------------------
 
 import GatingML
-
+import IntermediateGate (Transform(..))
 
 null_compensation = "uncompensated"
 default_compensation = "Comp_M"
@@ -79,9 +79,6 @@ top_gatingml = Element { elName = unqual "gating:Gating-ML"
 gating_dimension :: GatingDimension -> Element
 gating_dimension GatingDimension{..} = full_element
   where
-
-    --TODO handle transform reference?
-
     channel_attribute = Attr (simple_name "data-type:name") (T.unpack gd_name)
     dim_element = Element { elName = unqual "data-type:fcs-dimension"
                           , elAttribs = [ channel_attribute ]
@@ -99,7 +96,10 @@ gating_dimension GatingDimension{..} = full_element
     compensation_attribute = case gd_compensation_ref of
                                Nothing -> Attr (simple_name "gating:compensation-ref") null_compensation
                                Just x  -> Attr (simple_name "gating:compensation-ref") (T.unpack x)
-    attributes = attributes'' ++ [compensation_attribute]
+
+    attributes = case gd_transformation_ref of
+                   Nothing -> attributes'' ++ [compensation_attribute]
+                   Just x ->  attributes'' ++ [compensation_attribute, Attr (simple_name "gating:transformation-ref") (T.unpack x)]
 
     full_element = Element { elName = unqual "gating:dimension"
                            , elAttribs = attributes
@@ -223,6 +223,36 @@ to_spectrum_matrix_element Compensation{..} = full_element
                            }
 
 
+to_transformation_element :: T.Text -> Transform -> Element
+to_transformation_element _ Linear = error "ERROR implemention should not be generating explicit linear transforms for GatingML"
+to_transformation_element label (Log paramT paramM) = full_element
+  where
+    flog = Element { elName = unqual "transforms:flog"
+                   , elAttribs = [Attr (simple_name "transforms:T") (show paramT), Attr (simple_name "transforms:M") (show paramM)]
+                   , elContent = []
+                   , elLine = Nothing
+                   }
+    full_element = Element { elName = unqual "transforms:transformation"
+                           , elAttribs = [ Attr (simple_name "transforms:id") (T.unpack label) ]
+                           , elContent  = [Elem flog]
+                           , elLine = Nothing
+                           }
+to_transformation_element label (Biexponential paramT paramW paramM paramA) = full_element
+  where
+    logicle = Element { elName = unqual "transforms:logicle"
+                      , elAttribs = [ Attr (simple_name "transforms:T") (show paramT)
+                                    , Attr (simple_name "transforms:W") (show paramW)
+                                    , Attr (simple_name "transforms:M") (show paramM)
+                                    , Attr (simple_name "transforms:A") (show paramA) ]
+                      , elContent = []
+                      , elLine = Nothing
+                   }
+    full_element = Element { elName = unqual "transforms:transformation"
+                           , elAttribs = [ Attr (simple_name "transforms:id") (T.unpack label) ]
+                           , elContent  = [Elem logicle]
+                           , elLine = Nothing
+                           }
+                                         
 
 
 
@@ -257,14 +287,16 @@ mark_compensation fluorochromes (PolygonGate aId pId x_dim y_dim points) = Polyg
 
 
 
-to_xml :: Compensation -> [Gate] -> Element
-to_xml compensation gates = top
+to_xml :: [(Transform, T.Text)] -> Compensation -> [Gate] -> Element
+to_xml transform_ref_pairs compensation gates = top
   where
     fluorochromes = Set.fromList . c_fluorochromes $ compensation
-    gates' = map (mark_compensation fluorochromes) gates
+    --gates' = map (mark_compensation fluorochromes) gates
     top = Element { elName = unqual "gating:Gating-ML"
                           , elAttribs = [ xsi, gating, transforms, datatype, schema_location]
-                          , elContent = [Elem . to_spectrum_matrix_element $ compensation] ++  map (Elem . to_gate_element)  gates'
+                          , elContent = concat [ map (Elem . (\(t,label) -> to_transformation_element label t)) transform_ref_pairs
+                                               , [Elem . to_spectrum_matrix_element $ compensation]
+                                               , map (Elem . to_gate_element)  gates]
                           , elLine = Nothing
                           }
 

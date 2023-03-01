@@ -23,8 +23,8 @@ import IntermediateGate
 
 
 
-convert_collection :: [IntermediateGate] -> T.Text -> [Gate]
-convert_collection intermediate_gates compensation_ref = gates
+convert_collection :: [IntermediateGate] -> T.Text -> ([Gate], [(Transform, T.Text)])
+convert_collection intermediate_gates compensation_ref = (gates, Map.toList transform_map)
   where
     all_transforms = [ brg_x_transform g | g <- intermediate_gates ] ++ [ brg_y_transform g | g <- intermediate_gates ]
     log_transforms = L.nub (filter is_log_transform all_transforms)
@@ -39,51 +39,43 @@ convert_collection intermediate_gates compensation_ref = gates
 
 convert_intermediate_gate :: IntermediateGate -> (Map.Map Transform T.Text) -> T.Text -> Gate
 convert_intermediate_gate BasicRectangleGate{..} transform_map compensation_ref = undefined -- RectangleGate{..}
-{-
   where
-    rg_id = dg_name
-    rg_parent_id = diva_parent_to_id dg_parent
+    rg_id = brg_id
+    rg_parent_id = brg_parent_id
 
-    [dx_min, dx_max, dy_min, dy_max] = let points = case (length (r_points dg_region) == 4) of
-                                                  False -> error $ "Rectangle Region for " <> T.unpack dg_name <> " has incorrect number of vertices"
-                                                  True -> r_points dg_region
-                                           x_points = map fst points
-                                           y_points = map snd points
-                                       in [ head . L.sort $ x_points, last . L.sort $ x_points, head . L.sort $ y_points, last . L.sort $ y_points]
-    x_fluorescent = r_xparam dg_region
-    y_fluorescent = r_yparam dg_region
-
-    x_transform = transform_coord dg_x_scaled dg_x_log dg_x_scale
-    y_transform = transform_coord dg_y_scaled dg_y_log dg_y_scale
-
-    x_min = x_transform dx_min
-    x_max = x_transform dx_max
-    y_min = y_transform dy_min
-    y_max = y_transform dy_max
+    (x_min, x_max) = brg_x_range
+    (y_min, y_max) = brg_y_range
                                       
-    rg_x_dim = GatingDimension Nothing Nothing (Just x_min) (Just x_max) x_fluorescent
-    rg_y_dim = GatingDimension Nothing Nothing (Just y_min) (Just y_max) y_fluorescent
--}
+    rg_x_dim = GatingDimension { gd_compensation_ref = if brg_x_compensated then Just compensation_ref else Nothing
+                               , gd_transformation_ref = Map.lookup brg_x_transform transform_map
+                               , gd_minimum = (Just x_min)
+                               , gd_maximum = (Just x_max)
+                               , gd_name = brg_x_channel }
+               
+    rg_y_dim = GatingDimension { gd_compensation_ref = if brg_y_compensated then Just compensation_ref else Nothing
+                               , gd_transformation_ref = Map.lookup brg_y_transform transform_map
+                               , gd_minimum = (Just y_min)
+                               , gd_maximum = (Just y_max)
+                               , gd_name = brg_y_channel }
+
 convert_intermediate_gate BasicPolygonGate{..} transform_map compensation_ref = undefined -- PolygonGate{..}
-{-
   where
-    pg_id = dg_name
-    pg_parent_id = diva_parent_to_id dg_parent
+    pg_id = bpg_id
+    pg_parent_id = bpg_parent_id
 
-    x_fluorescent = r_xparam dg_region
-    y_fluorescent = r_yparam dg_region
+    pg_x_dim = GatingDimension { gd_compensation_ref = if bpg_x_compensated then Just compensation_ref else Nothing
+                               , gd_transformation_ref = Map.lookup bpg_x_transform transform_map
+                               , gd_minimum = Nothing
+                               , gd_maximum = Nothing
+                               , gd_name = bpg_x_channel }
+               
+    pg_y_dim = GatingDimension { gd_compensation_ref = if bpg_y_compensated then Just compensation_ref else Nothing
+                               , gd_transformation_ref = Map.lookup bpg_y_transform transform_map
+                               , gd_minimum = Nothing
+                               , gd_maximum = Nothing
+                               , gd_name = bpg_y_channel }
 
-    pg_x_dim = GatingDimension Nothing Nothing Nothing Nothing x_fluorescent
-    pg_y_dim = GatingDimension Nothing Nothing Nothing Nothing y_fluorescent
-
-    d_x_points = map fst (r_points dg_region)
-    d_y_points = map snd (r_points dg_region)    
-
-    x_transform = transform_coord dg_x_scaled dg_x_log dg_x_scale
-    y_transform = transform_coord dg_y_scaled dg_y_log dg_y_scale
-    
-    pg_points = zip (map x_transform d_x_points) (map y_transform d_y_points)
--}
+    pg_points = bpg_vertices
 
 
 

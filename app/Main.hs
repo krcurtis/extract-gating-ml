@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Copyright 2022 Fred Hutchinson Cancer Center
+-- Copyright 2022,2023 Fred Hutchinson Cancer Center
 -- Load DIVA XML file and generate a corresponding GatingML file
 -- WARNING GatingML gate coordinates where the logicle transform was used in the DIVA XML are hopefully close but will not be exact
 
@@ -16,13 +16,17 @@ import Control.DeepSeq
 import Data.Maybe (isNothing, fromJust)
 import qualified Data.Map as Map
 import Data.List (find)
+import qualified Data.Text as T
 
 --------------------------------------------------------------------------------
 
 import ParseDiva
 import QueryDiva
 import QueryDivaGates
-import Diva2GatingML
+import Diva2GatingML (convert_diva_compensation)
+import Diva2Intermediate
+import Intermediate2GatingML
+import GatingML
 import GatingML2XML
 
 
@@ -163,11 +167,18 @@ main = do
     
     case (find_worksheet diva_info worksheet_name) of
       Nothing -> error $ "ERROR sheet " <> worksheet_name <> " is not in DIVA XML"
-      Just w ->  let gates = map convert_diva_gate (dw_gates w)
+      Just w ->  let comp_ref = T.pack default_compensation
                      comp_matrix = convert_diva_compensation (dw_compensation_info w)
-                     xml_root = gates `deepseq` to_xml comp_matrix gates
+                     fluorochromes = c_fluorochromes comp_matrix
+                     intermediate_gates = map (\g -> convert_diva_gate g fluorochromes) (dw_gates w)
+                     (gates, transform_ref_pairs) = convert_collection intermediate_gates comp_ref
+                     xml_root = gates `deepseq` to_xml transform_ref_pairs comp_matrix gates
                  in
                    xml_to_file output_file xml_root
+{- remove extract-tube command for now
+   USAGE:
+     extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<diva_xml> -o=<gatingml_output_file>
+     extract-tube           Extract the gates and compensation matrix for a specific specimen and tube combination
 
 
   when (args `isPresent` (command "extract-tube")) $ do
@@ -181,7 +192,15 @@ main = do
     if isNothing diva_gates
       then error $ "ERROR specimen and tube combination was not found: " <> specimen <> "/" <> tube_label
       else
-        let gates = map convert_diva_gate (fromJust diva_gates)
+        let comp_ref = T.pack default_compensation
+                     comp_matrix = convert_diva_compensation (dw_compensation_info w)
+                     fluorochromes = c_fluorochromes comp_matrix
+                     intermediate_gates = map (\g -> convert_diva_gate g fluorochromes) (dw_gates w)
+                     (gates, transform_ref_pairs) = convert_collection intermediate_gates comp_ref
+                     xml_root = gates `deepseq` to_xml transform_ref_pairs comp_matrix gates
+                                
+              gates = map convert_diva_gate (fromJust diva_gates)
             xml_root = gates `deepseq` to_gates_only_xml gates
         in
           xml_to_file output_file xml_root
+-}
