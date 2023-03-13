@@ -38,7 +38,7 @@ suggest_transform  True True 0.0 = Log paramT paramM
   where
     paramT = 2.0**18
     paramM = 4.5
-suggest_transform  True True scale_factor = Biexponential paramT paramM paramW paramA
+suggest_transform  True True scale_factor = Biexponential paramT paramW paramM paramA
   where
     paramT = 2.0**18
     paramM = 4.5

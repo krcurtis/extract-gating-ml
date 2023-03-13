@@ -22,11 +22,20 @@ import GatingML
 import IntermediateGate
 
 
+intermediate_x_transform :: IntermediateGate -> Transform
+intermediate_x_transform BasicRectangleGate{..} = brg_x_transform
+intermediate_x_transform BasicPolygonGate{..} = bpg_x_transform
+
+intermediate_y_transform :: IntermediateGate -> Transform
+intermediate_y_transform BasicRectangleGate{..} = brg_y_transform
+intermediate_y_transform BasicPolygonGate{..} = bpg_y_transform
+
+
 
 convert_collection :: [IntermediateGate] -> T.Text -> ([Gate], [(Transform, T.Text)])
 convert_collection intermediate_gates compensation_ref = (gates, Map.toList transform_map)
   where
-    all_transforms = [ brg_x_transform g | g <- intermediate_gates ] ++ [ brg_y_transform g | g <- intermediate_gates ]
+    all_transforms = [ intermediate_x_transform g | g <- intermediate_gates ] ++ [ intermediate_y_transform g | g <- intermediate_gates ]
     log_transforms = L.nub (filter is_log_transform all_transforms)
     logicle_transforms = L.nub (filter is_logicle_transform all_transforms)  -- want to preserve order
 
@@ -38,7 +47,7 @@ convert_collection intermediate_gates compensation_ref = (gates, Map.toList tran
 
 
 convert_intermediate_gate :: IntermediateGate -> (Map.Map Transform T.Text) -> T.Text -> Gate
-convert_intermediate_gate BasicRectangleGate{..} transform_map compensation_ref = undefined -- RectangleGate{..}
+convert_intermediate_gate BasicRectangleGate{..} transform_map compensation_ref = RectangleGate{..}
   where
     rg_id = brg_id
     rg_parent_id = brg_parent_id
@@ -58,7 +67,7 @@ convert_intermediate_gate BasicRectangleGate{..} transform_map compensation_ref 
                                , gd_maximum = (Just y_max)
                                , gd_name = brg_y_channel }
 
-convert_intermediate_gate BasicPolygonGate{..} transform_map compensation_ref = undefined -- PolygonGate{..}
+convert_intermediate_gate BasicPolygonGate{..} transform_map compensation_ref = PolygonGate{..}
   where
     pg_id = bpg_id
     pg_parent_id = bpg_parent_id
