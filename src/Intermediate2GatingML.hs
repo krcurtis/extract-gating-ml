@@ -49,6 +49,7 @@ convert_collection intermediate_gates compensation_ref = (gates, Map.toList tran
 convert_intermediate_gate :: IntermediateGate -> (Map.Map Transform T.Text) -> T.Text -> Gate
 convert_intermediate_gate BasicRectangleGate{..} transform_map compensation_ref = RectangleGate{..}
   where
+    neg_infinity = log 0
     rg_id = brg_id
     rg_parent_id = brg_parent_id
 
@@ -57,13 +58,13 @@ convert_intermediate_gate BasicRectangleGate{..} transform_map compensation_ref 
                                       
     rg_x_dim = GatingDimension { gd_compensation_ref = if brg_x_compensated then Just compensation_ref else Nothing
                                , gd_transformation_ref = Map.lookup brg_x_transform transform_map
-                               , gd_minimum = (Just x_min)
+                               , gd_minimum = if x_min == neg_infinity then Nothing else (Just x_min)
                                , gd_maximum = (Just x_max)
                                , gd_name = brg_x_channel }
                
     rg_y_dim = GatingDimension { gd_compensation_ref = if brg_y_compensated then Just compensation_ref else Nothing
                                , gd_transformation_ref = Map.lookup brg_y_transform transform_map
-                               , gd_minimum = (Just y_min)
+                               , gd_minimum = if y_min == neg_infinity then Nothing else (Just y_min)
                                , gd_maximum = (Just y_max)
                                , gd_name = brg_y_channel }
 

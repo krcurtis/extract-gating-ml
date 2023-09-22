@@ -159,3 +159,51 @@ spec = describe "check steps in gate conversion from Diva to GatingML" $ do
     --(gd_minimum . rg_y_dim $ f4) `shouldBe` Just (fst . brg_y_range $ i2)
     --(gd_maximum . rg_y_dim $ f4) `shouldBe` Just (snd . brg_y_range $ i2)
     (gd_name . rg_y_dim $ f4) `shouldBe` "CH6"
+
+
+
+  it "check proper handling of negative infinity in rectangle gate when converted to GatingML record" $ do
+
+    let x2 = 5000.0
+        y2 = 12000.0
+        lx1 = log 0 
+        lx2 = 3.6989700043360187 -- log10 x2
+        ly1 = log 0 
+        ly2 = 4.079181246047625  -- log10 x2
+    
+        paramT = 2.0**18
+        paramM = 4.5
+        
+        rx2 = 1.0 + (1.0/paramM) * log10 (x2/paramT)
+        ry2 = 1.0 + (1.0/paramM) * log10 (y2/paramT)
+
+        r2 = Region RectangleRegion "CH3" "CH4"  [(lx1,ly1), (lx2, ly1), (lx2, ly2), (lx1, ly2)]
+
+        i2 = BasicRectangleGate { brg_id = "P2"
+                                , brg_parent_id = Just "P1"
+                                , brg_x_compensated = False
+                                , brg_y_compensated = True
+                                , brg_x_transform = Log paramT paramM
+                                , brg_y_transform = Log paramT paramM
+                                , brg_x_channel = "CH3"
+                                , brg_y_channel = "CH4"
+                                , brg_x_range = (lx1, lx2)
+                                , brg_y_range = (ly1, ly2) }
+
+    let m = Map.fromList [(Log paramT paramM, "Log1")]
+    let f2 = convert_intermediate_gate i2 m "Comp_M"
+
+    rg_id f2 `shouldBe` "P2"
+    rg_parent_id f2 `shouldBe` Just "P1"
+
+    (gd_compensation_ref . rg_x_dim $ f2) `shouldBe` Nothing
+    (gd_transformation_ref . rg_x_dim $ f2) `shouldBe` Just "Log1"
+    (gd_minimum . rg_x_dim $ f2) `shouldBe` Nothing
+    (gd_maximum . rg_x_dim $ f2) `shouldBe` Just (snd . brg_x_range $ i2)
+    (gd_name . rg_x_dim $ f2) `shouldBe` "CH3"
+
+    (gd_compensation_ref . rg_y_dim $ f2) `shouldBe` Just "Comp_M"
+    (gd_transformation_ref . rg_y_dim $ f2) `shouldBe` Just "Log1"
+    (gd_minimum . rg_y_dim $ f2) `shouldBe` Nothing
+    (gd_maximum . rg_y_dim $ f2) `shouldBe` Just (snd . brg_y_range $ i2)
+    (gd_name . rg_y_dim $ f2) `shouldBe` "CH4"
