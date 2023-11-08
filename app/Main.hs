@@ -77,7 +77,14 @@ getArgOrExit = getArgOrExitWith patterns
 
 find_worksheet :: DivaInfo -> String -> Maybe DivaWorksheet
 find_worksheet diva_info sheet_name = find (\w -> sheet_name == dw_sheet_name w) (di_global_worksheets diva_info)
-    
+
+find_tube :: DivaInfo -> String -> String -> Maybe DivaTube
+find_tube diva_info specimen_name tube_name = potential_tubes >>= find_the_tube
+  where
+    potential_tubes = Map.lookup specimen_name (di_specimen_tubes diva_info)
+    find_the_tube :: [DivaTube] -> Maybe DivaTube
+    find_the_tube xs = find (\t -> tube_name == dt_tube_name t) xs
+                                      
 
 
 main = do
@@ -175,11 +182,6 @@ main = do
                      xml_root = gates `deepseq` to_xml transform_ref_pairs comp_matrix gates
                  in
                    xml_to_file output_file xml_root
-{- remove extract-tube command for now
-   USAGE:
-     extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<diva_xml> -o=<gatingml_output_file>
-     extract-tube           Extract the gates and compensation matrix for a specific specimen and tube combination
-
 
   when (args `isPresent` (command "extract-tube")) $ do
     diva_file <- args `getArgOrExit` (longOption "input_diva_xml")
@@ -188,19 +190,32 @@ main = do
     tube_label <- args `getArgOrExit` (longOption "tube")    
     diva_info <- load_diva_info diva_file
 
-    let diva_gates = find_specimen_tube_gates diva_info specimen tube_label
-    if isNothing diva_gates
-      then error $ "ERROR specimen and tube combination was not found: " <> specimen <> "/" <> tube_label
-      else
-        let comp_ref = T.pack default_compensation
-                     comp_matrix = convert_diva_compensation (dw_compensation_info w)
-                     fluorochromes = c_fluorochromes comp_matrix
-                     intermediate_gates = map (\g -> convert_diva_gate g fluorochromes) (dw_gates w)
-                     (gates, transform_ref_pairs) = convert_collection intermediate_gates comp_ref
-                     xml_root = gates `deepseq` to_xml transform_ref_pairs comp_matrix gates
-                                
-              gates = map convert_diva_gate (fromJust diva_gates)
-            xml_root = gates `deepseq` to_gates_only_xml gates
-        in
-          xml_to_file output_file xml_root
--}
+    -- the question is what needs to be return from the find_ I think the old was insufficient because missing some info
+
+    case (find_tube diva_info specimen tube_label) of
+      Nothing  -> error $ "ERROR specimen and tube combination was not found in DIVA XML: " <> specimen <> "/" <> tube_label
+      Just t   -> let comp_ref = T.pack default_compensation
+                      comp_matrix = convert_diva_compensation (dt_compensation_info t)
+                      fluorochromes = c_fluorochromes comp_matrix
+                      intermediate_gates = map (\g -> convert_diva_gate g fluorochromes) (dt_gates t)
+                      (gates, transform_ref_pairs) = convert_collection intermediate_gates comp_ref
+                      xml_root = gates `deepseq` to_xml transform_ref_pairs comp_matrix gates
+                  in
+                    xml_to_file output_file xml_root
+
+
+--  let diva_gates = find_specimen_tube_gates diva_info specimen tube_label
+--  if isNothing diva_gates
+--    then error $ "ERROR specimen and tube combination was not found: " <> specimen <> "/" <> tube_label
+--    else
+--      let comp_ref = T.pack default_compensation
+--                   comp_matrix = convert_diva_compensation (dw_compensation_info w)
+--                   fluorochromes = c_fluorochromes comp_matrix
+--                   intermediate_gates = map (\g -> convert_diva_gate g fluorochromes) (dw_gates w)
+--                   (gates, transform_ref_pairs) = convert_collection intermediate_gates comp_ref
+--                   xml_root = gates `deepseq` to_xml transform_ref_pairs comp_matrix gates
+--                              
+--            gates = map convert_diva_gate (fromJust diva_gates)
+--          xml_root = gates `deepseq` to_gates_only_xml gates
+--      in
+--        xml_to_file output_file xml_root

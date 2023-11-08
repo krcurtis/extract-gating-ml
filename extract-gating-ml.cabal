@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -64,7 +64,7 @@ executable extract-gating-ml
       Paths_extract_gating_ml
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -funfolding-use-threshold=16 -O2 -optc-O3
+  ghc-options: -rtsopts -funfolding-use-threshold=16 -O2 -optc-O3
   build-depends:
       MissingH
     , ad
@@ -91,7 +91,7 @@ test-suite extract-gating-ml-test
       Paths_extract_gating_ml
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -rtsopts
   build-depends:
       MissingH
     , ad

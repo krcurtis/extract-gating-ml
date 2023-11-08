@@ -1,5 +1,6 @@
 Usage:
   extract-gating-ml extract-global [-w=<sheet>] -i=<diva_xml>  -o=<gatingml_output_file> 
+  extract-gating-ml extract-tube -s=<slabel> -t=<tlabel> -i=<diva_xml> -o=<gatingml_output_file>
   extract-gating-ml summary <diva_xml>
   extract-gating-ml summary-comp-channels <diva_xml>
   extract-gating-ml summary-global-gates [-w=<sheet>] <diva_xml>
@@ -7,6 +8,8 @@ Usage:
   extract-gating-ml summary-all-gates <diva_xml>
   extract-gating-ml compare-vs-global [-w=<sheet>] <diva_xml>
   extract-gating-ml compare-sheets [-w=<sheet>] <diva_xml>
+
+
 
 Options:
   -h --help                 show this help text
@@ -22,6 +25,7 @@ Examples:
 
 Commands:
   extract-global         Extract the gates and compensation matrix from the global worksheet section
+  extract-tube           Extract the gates and compensation matrix for a specific specimen and tube combination  
   summary                For the global worksheet and all specimen/tube combinations show the number of gates and compensation parameters
   summary-comp-channels  For the global worksheet and all specimen/tube combinations show a list of the compensation parameters
   summary-global-gates   For the global worksheet, show the gate hierarchy and some short information about the gates
