@@ -190,8 +190,6 @@ main = do
     tube_label <- args `getArgOrExit` (longOption "tube")    
     diva_info <- load_diva_info diva_file
 
-    -- the question is what needs to be return from the find_ I think the old was insufficient because missing some info
-
     case (find_tube diva_info specimen tube_label) of
       Nothing  -> error $ "ERROR specimen and tube combination was not found in DIVA XML: " <> specimen <> "/" <> tube_label
       Just t   -> let comp_ref = T.pack default_compensation
@@ -204,18 +202,3 @@ main = do
                     xml_to_file output_file xml_root
 
 
---  let diva_gates = find_specimen_tube_gates diva_info specimen tube_label
---  if isNothing diva_gates
---    then error $ "ERROR specimen and tube combination was not found: " <> specimen <> "/" <> tube_label
---    else
---      let comp_ref = T.pack default_compensation
---                   comp_matrix = convert_diva_compensation (dw_compensation_info w)
---                   fluorochromes = c_fluorochromes comp_matrix
---                   intermediate_gates = map (\g -> convert_diva_gate g fluorochromes) (dw_gates w)
---                   (gates, transform_ref_pairs) = convert_collection intermediate_gates comp_ref
---                   xml_root = gates `deepseq` to_xml transform_ref_pairs comp_matrix gates
---                              
---            gates = map convert_diva_gate (fromJust diva_gates)
---          xml_root = gates `deepseq` to_gates_only_xml gates
---      in
---        xml_to_file output_file xml_root
